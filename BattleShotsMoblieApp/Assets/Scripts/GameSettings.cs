@@ -17,9 +17,12 @@ public class GameSettings : MonoBehaviour
         }
         set
         {
-            YourGrid = new GameObject[value, value];
-            EnemyGrid = new GameObject[value, value];
-            sizeOfGrid = value;
+            if (value != 0)
+            {
+                YourGrid = new int[value, value];
+                EnemyGrid = new int[value, value];
+                sizeOfGrid = value;
+            }
         }
     }
     public int NumOfShots { get; set; }
@@ -27,9 +30,9 @@ public class GameSettings : MonoBehaviour
     public int MaxNumOfShots = 10;
     public int NumEnemyShots { get; set; }
 
-    public GameObject[,] EnemyGrid;
+    public int[,] EnemyGrid;
 
-    public GameObject[,] YourGrid;
+    public int[,] YourGrid;
 
     public List<string> AllReadySelected = new List<string>();
 
@@ -41,5 +44,23 @@ public class GameSettings : MonoBehaviour
 
     public GameSettings()
     {
+    }
+
+    public void ResetSettings()
+    {
+        ConnectedDeviceName = "";
+        Master = false;
+        YourName = "";
+        EnemyName = "";
+        SizeOfGrid = 0;
+        YourGrid = null;
+        EnemyGrid = null;
+        NumOfShots = 0;
+        NumEnemyShots = 0;
+        AllReadySelected.Clear();
+        YourShotCoodinates.Clear();
+        Ready = false;
+        EnemyReady = false;
+        YourTurn = false;
     }
 }

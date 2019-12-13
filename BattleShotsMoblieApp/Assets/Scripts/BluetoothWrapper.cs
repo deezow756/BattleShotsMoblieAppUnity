@@ -42,6 +42,8 @@ public class BluetoothWrapper : MonoBehaviour
 
     virtual public string BtCheckIsOn() { return null; }
 
+    virtual public string GetDeviceName() { return null; }
+
     virtual public void EnableDiscoverable() { }
 
     virtual public string GetPairedDevices() { return null; }
@@ -52,11 +54,27 @@ public class BluetoothWrapper : MonoBehaviour
 
     virtual public void ConnectToDevice(string device) { }
 
+    virtual public void Disconnect() { }
+
     virtual public void ReceivePair() { }
+
+    virtual public string GetIsReceiving() { return null; }
 
     virtual public void ReceiveData() { }
 
     virtual public void SendData(string msg) { }
+
+    virtual public void Toast(string msg) { }
+
+    virtual public void Reset() { }
+
+    virtual public void WriteDevices(string devices) { }
+
+    virtual public void WriteAddDevice(string device) { }
+
+    virtual public string ReadDevices() { return null; }
+
+    virtual public string FileDevicesExists() { return null; }
 
     // ...
 

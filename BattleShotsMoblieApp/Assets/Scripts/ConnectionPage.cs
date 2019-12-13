@@ -14,16 +14,19 @@ public class ConnectionPage : MonoBehaviour
     [SerializeField]
     private GameObject prevList;
     [SerializeField]
-    private GameObject prevLoadingIcon;
-    [SerializeField]
     private GameObject newList;
     [SerializeField]
     private GameObject newLoadingIcon;
+    [SerializeField]
+    private Button btnNewLoading;
     [SerializeField]
     private GameObject listButtonPrefab;
 
     [SerializeField]
     private GameObject errorText;
+
+    List<string> knownPlayedDevices;
+    List<string> actualPlayedDevices = new List<string>();
 
     private List<GameObject> prevButtons = new List<GameObject>();
     private string[] knownDeviceNames;
@@ -38,6 +41,12 @@ public class ConnectionPage : MonoBehaviour
 
     public GameObject LoadingScreen { get => loadingScreen; }
 
+    [SerializeField]
+    private GameObject helpPanel;
+
+    [SerializeField]
+    private Text txtDeviceName;
+
     private void Start()
     {
         gameManager = GameManagerObject.GetComponent<GameManager>();
@@ -45,17 +54,24 @@ public class ConnectionPage : MonoBehaviour
 
     private void OnEnable()
     {
+        DestoryKnownDevices();
+        DestoryNewDevices();
+        gettingKnownDevices = false;
+        gettingNewDevices = false;
+        btnNewLoading.interactable = true;
+        newLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
+        LoadingScreen.SetActive(false);
+        helpPanel.SetActive(false);
         GetKnownDevices();
         GetNewDevices();
+        GetPlayedDevices();
     }
 
     private void OnDisable()
     {
         gettingKnownDevices = false;
         gettingNewDevices = false;
-        prevLoadingIcon.GetComponent<Button>().interactable = true;
-        prevLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
-        newLoadingIcon.GetComponent<Button>().interactable = true;
+        btnNewLoading.interactable = true;
         newLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
         LoadingScreen.SetActive(false);
     }
@@ -65,82 +81,143 @@ public class ConnectionPage : MonoBehaviour
         GameManager.BluetoothPlugin.EnableDiscoverable();
     }
 
+    public void GetPlayedDevices()
+    {
+        string s = GameManager.BluetoothPlugin.FileDevicesExists();
+        if (s.Equals("1"))
+        {
+            string ss = GameManager.BluetoothPlugin.ReadDevices();
+            if (!ss.Equals(""))
+            {
+                string[] lstDevices = ss.Split(',');
+                knownPlayedDevices = new List<string>(lstDevices);
+            }
+        }
+    }
+
     public void GetKnownDevices()
     {
-        knownDeviceNames = null;        
-        prevLoadingIcon.GetComponent<Button>().interactable = false;
-        prevLoadingIcon.GetComponent<Animator>().SetBool("Loading", true);
-        string devices = GameManager.BluetoothPlugin.GetPairedDevices(); ;
-        knownDeviceNames = devices.Split(',');
-        if (knownDeviceNames.Length > 0)
+        try
         {
-            DestoryKnownDevices();
-            gettingKnownDevices = true;
+            knownDeviceNames = null;
+            string devices = GameManager.BluetoothPlugin.GetPairedDevices(); ;
+            knownDeviceNames = devices.Split(',');
+            if (knownDeviceNames.Length > 0)
+            {
+                gettingKnownDevices = true;
+            }
         }
-        else
+        catch(Exception ex)
         {
-            DestoryKnownDevices();
-            prevLoadingIcon.GetComponent<Button>().interactable = true;
-            prevLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Getting Known Devices";
         }
     }
 
     public void DestoryKnownDevices()
     {
-        if(prevButtons.Count > 0)
+        try
         {
-            for (int i = 0; i < prevButtons.Count; i++)
+            if (prevButtons.Count > 0)
             {
-                Destroy(prevButtons[i]);
+                for (int i = 0; i < prevButtons.Count; i++)
+                {
+                    Destroy(prevButtons[i]);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Destoring Known Devices";
         }
     }
 
     public void GetNewDevices()
     {
-        newButtons.Clear();
-        DestoryNewDevices();
-        newLoadingIcon.GetComponent<Button>().interactable = false;
-        newLoadingIcon.GetComponent<Animator>().SetBool("Loading", true);        
-        GameManager.BluetoothPlugin.DiscoverDevices();        
-        Invoke("CancelDiscovery", 20);        
+        try
+        {            
+            DestoryNewDevices();
+            newButtons.Clear();
+            btnNewLoading.interactable = false;
+            newLoadingIcon.GetComponent<Animator>().SetBool("Loading", true);
+            GameManager.BluetoothPlugin.DiscoverDevices();
+            Invoke("CancelDiscovery", 10);
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Getting New Devices";
+        }
     }
 
     void CancelDiscovery()
     {
-        GameManager.BluetoothPlugin.CancelDiscovery();
-        newLoadingIcon.GetComponent<Button>().interactable = true;
-        newLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
+        try
+        {
+            GameManager.BluetoothPlugin.CancelDiscovery();
+            btnNewLoading.interactable = true;
+            newLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Canceling Discovery";
+        }
     }
 
     public void NewDeviceFound(string device)
     {
-        GameObject button = Instantiate(listButtonPrefab, newList.transform);
-        button.GetComponent<ButtonScript>().connectionPage = this;
-        button.GetComponent<ButtonScript>().ButtonName = device;
-        button.transform.name = device;
-        button.GetComponentInChildren<Text>().text = device;
-        button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
-        newButtons.Add(button);
+        try
+        {
+            GameObject button = Instantiate(listButtonPrefab, newList.transform);
+            button.GetComponent<ButtonScript>().connectionPage = this;
+            button.GetComponent<ButtonScript>().ButtonName = device;
+            button.transform.name = device;
+            button.GetComponentInChildren<Text>().text = device.Split('.')[0];
+            button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
+            newButtons.Add(button);
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error New Device Found";
+        }
     }
 
     public void DestoryNewDevices()
     {
-        if (newButtons.Count > 0)
+        try
         {
-            for (int i = 0; i < newButtons.Count; i++)
+            if (newButtons.Count > 0)
             {
-                Destroy(newButtons[i]);
+                for (int i = 0; i < newButtons.Count; i++)
+                {
+                    Destroy(newButtons[i]);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Destoring New Devices";
         }
     }
 
     public void CompleteConnection(string name)
     {
-        //Loading Screen Stuff
-        //LoadingScreen.SetActive(true);
-        //GameManager.BluetoothPlugin.ConnectToDevice(name);
-        gameManager.OpenPage("SetupPage1", true);
+        try
+        {
+            LoadingScreen.SetActive(true);
+            GameManager.BluetoothPlugin.ConnectToDevice(name);
+            GameManager.BluetoothPlugin.WriteAddDevice(name);
+            //gameManager.OpenPage("SetupPage1", true);
+        }
+        catch (Exception ex)
+        {
+            errorText.SetActive(true);
+            errorText.GetComponent<Text>().text = "Error Starting Connection To " + name;
+        }
     }
 
     private void Update()
@@ -156,19 +233,60 @@ public class ConnectionPage : MonoBehaviour
             {
                 if (knownDeviceIndex < knownDeviceNames.Length)
                 {
-                    GameObject button = Instantiate(listButtonPrefab, prevList.transform);
-                    button.GetComponent<ButtonScript>().connectionPage = this;
-                    button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
-                    button.transform.name = knownDeviceNames[knownDeviceIndex];
-                    button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex];
-                    button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
-                    prevButtons.Add(button);
+                    bool skip = false;
+                    if (knownPlayedDevices != null)
+                    {
+                        if (knownPlayedDevices.Count > 0)
+                        {
+                            string[] split = knownDeviceNames[knownDeviceIndex].Split('.');
+                            for (int i = 0; i < knownPlayedDevices.Count; i++)
+                            {
+                                if (split[1] == knownPlayedDevices[i].Split('.')[1])
+                                {
+                                    GameObject button = Instantiate(listButtonPrefab, prevList.transform);
+                                    button.GetComponent<ButtonScript>().connectionPage = this;
+                                    button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
+                                    button.transform.name = knownDeviceNames[knownDeviceIndex];
+                                    button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex].Split('.')[0];
+                                    button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
+                                    prevButtons.Add(button);
+                                    if (!actualPlayedDevices.Contains(knownDeviceNames[knownDeviceIndex]))
+                                    {
+                                        actualPlayedDevices.Add(knownDeviceNames[knownDeviceIndex]);
+                                    }
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!skip)
+                    {
+                        if (knownDeviceNames[knownDeviceIndex] != "")
+                        {
+                            GameObject button = Instantiate(listButtonPrefab, newList.transform);
+                            button.GetComponent<ButtonScript>().connectionPage = this;
+                            button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
+                            button.transform.name = knownDeviceNames[knownDeviceIndex];
+                            button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex].Split('.')[0];
+                            button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
+                            prevButtons.Add(button);
+                        }
+                    }
+                    
                     if (knownDeviceIndex == knownDeviceNames.Length - 1)
                     {
                         gettingKnownDevices = false;
                         knownDeviceIndex = 0;
-                        prevLoadingIcon.GetComponent<Button>().interactable = true;
-                        prevLoadingIcon.GetComponent<Animator>().SetBool("Loading", false);
+                        if (actualPlayedDevices != null)
+                        {
+                            if (actualPlayedDevices.Count > 0)
+                            {
+                                GameManager.BluetoothPlugin.WriteDevices(gameManager.ListToString(actualPlayedDevices));
+                            }
+                        }
+                        knownPlayedDevices = actualPlayedDevices;
                     }
                     else
                     {
@@ -177,5 +295,15 @@ public class ConnectionPage : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void BtnHelpOnClick()
+    {
+        helpPanel.SetActive(true);
+    }
+
+    public void BtnHelpOkOnClick()
+    {
+        helpPanel.SetActive(false);
     }
 }

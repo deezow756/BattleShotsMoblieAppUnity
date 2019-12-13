@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,7 +18,7 @@ public class StartPage : MonoBehaviour
     private GameObject TapAnyWhereTextObject;
 
     [SerializeField]
-    private GameObject ExitPanel;    
+    private GameObject ExitPanel;
 
     private void Start()
     {        
@@ -45,30 +46,36 @@ public class StartPage : MonoBehaviour
     }
     void CheckBluetoothCompatable()
     {
-        string btCheck = GameManager.BluetoothPlugin.BtCheck();
-        if (btCheck == "0")
+        try
         {
-            ClickToContinueButtonObject.SetActive(false);
-            TapAnyWhereTextObject.SetActive(false);
+            string btCheck = GameManager.BluetoothPlugin.BtCheck();
+            if (btCheck == "0")
+            {
+                ClickToContinueButtonObject.SetActive(false);
+                TapAnyWhereTextObject.SetActive(false);
+                ErrorTextObject.SetActive(true);
+                ErrorTextObject.GetComponent<Text>().text = "Device Does Not Support Bluetooth";
+            }
+            else
+            {
+                ClickToContinueButtonObject.GetComponent<Button>().interactable = true;
+                string btCheckIsOn = GameManager.BluetoothPlugin.BtCheckIsOn();
+                if (btCheckIsOn == "1")
+                {
+                    GameManager.BluetoothPlugin.ReceivePair();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
             ErrorTextObject.SetActive(true);
-            ErrorTextObject.GetComponent<Text>().text = "Device Does Not Support Bluetooth";
+            ErrorTextObject.GetComponent<Text>().text = ex.Message;
         }
-        else
-        {
-            ClickToContinueButtonObject.GetComponent<Button>().interactable = true;
-            GameManager.BluetoothPlugin.ReceivePair();
-        }
-    }
-
-    public void CheckStarted(string message)
-    {
-        ErrorTextObject.SetActive(true);
-        ErrorTextObject.GetComponent<Text>().text = message;
     }
 
     private void OnEnable()
     {
-        ErrorTextObject.SetActive(false);
+        
     }
 
     private void Update()
@@ -86,27 +93,60 @@ public class StartPage : MonoBehaviour
     }
     public void StartGame()
     {
-        Button btn = ClickToContinueButtonObject.GetComponent<Button>();
-        btn.interactable = false;
-        string btCheckIsOn = GameManager.BluetoothPlugin.BtCheckIsOn();
-        if (btCheckIsOn == "1")
+        try
         {
-            gameManager.OpenPage("ConnectionPage", true);
-            Invoke("ButtonInteraction", 5);
+            Button btn = ClickToContinueButtonObject.GetComponent<Button>();
+            btn.interactable = false;
+            string btCheckIsOn = GameManager.BluetoothPlugin.BtCheckIsOn();
+            if (btCheckIsOn == "1")
+            {
+                string IsReceiving = GameManager.BluetoothPlugin.GetIsReceiving();
+                if (IsReceiving == "0")
+                {
+                    GameManager.BluetoothPlugin.ReceivePair();
+                }
+                gameManager.OpenPage("ConnectionPage", true);
+                Invoke("ButtonInteraction", 3);
+            }
+            else
+            {
+                Invoke("SecondCheck", 1);
+            }
         }
-        else
+        catch(Exception ex)
         {
             ErrorTextObject.SetActive(true);
-            ErrorTextObject.GetComponent<Text>().text = "Bluetooth Turned On";
-
-            Invoke("NextPage", 2);
+            ErrorTextObject.GetComponent<Text>().text = ex.Message;
         }
     }
 
-    void NextPage()
+    void SecondCheck()
     {
-        Invoke("ButtonInteraction", 5);
-        gameManager.OpenPage("ConnectionPage", true);
+        try
+        {
+            Button btn = ClickToContinueButtonObject.GetComponent<Button>();
+            btn.interactable = false;
+            string btCheckIsOn = GameManager.BluetoothPlugin.BtCheckIsOn();
+            if (btCheckIsOn == "1")
+            {
+                string IsReceiving = GameManager.BluetoothPlugin.GetIsReceiving();
+                if (IsReceiving == "0")
+                {
+                    GameManager.BluetoothPlugin.ReceivePair();
+                }
+                gameManager.OpenPage("ConnectionPage", true);
+                Invoke("ButtonInteraction", 3);
+            }
+            else
+            {
+                Invoke("StartGame", 1);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorTextObject.SetActive(true);
+            ErrorTextObject.GetComponent<Text>().text = ex.Message;
+        }
     }
 
     void ButtonInteraction()

@@ -32,15 +32,11 @@ public class GameManager : MonoBehaviour
     public static BluetoothWrapper BluetoothPlugin { get => bluetoothPlugin; set { bluetoothPlugin = value; } }
 
     void Start()
-    {        
+    {
         camAnimator = Cam.GetComponent<Animator>();
         BluetoothPlugin = BluetoothWrapper.pluginWithGameObjectName(this.transform.name);
         Settings = new GameSettings();
         startPage.SetActive(true);
-        connectionPage.SetActive(false);
-        setUpPage1.SetActive(false);
-        setUpPage2.SetActive(false);
-        gamePage.SetActive(false);
         currentPage = startPage;
     }
 
@@ -83,16 +79,44 @@ public class GameManager : MonoBehaviour
         currentPage.SetActive(true);
         prevPage.SetActive(false);
     }
-    
+
+    public string ListToString(List<string> list)
+    {
+        string s = "";
+        for (int i = 0; i < list.Count; i++)
+        {
+            if(i == list.Count - 1)
+            {
+                s += list[i];
+            }
+            else
+            {
+                s += list[i] + ",";
+            }
+        }
+        return s;
+    }
+    public string ListToString(string[] list)
+    {
+        string s = "";
+        for (int i = 0; i < list.Length; i++)
+        {
+            if (i == list.Length - 1)
+            {
+                s += list[i];
+            }
+            else
+            {
+                s += list[i] + ",";
+            }
+        }
+        return s;
+    }
+
     #region Callbacks
     public void NewDeviceFound(string device)
     {
         connectionPage.GetComponent<ConnectionPage>().NewDeviceFound(device);
-    }
-
-    public void CheckStarted(string message)
-    {
-        startPage.GetComponent<StartPage>().CheckStarted(message);
     }
 
     public void ConnectedToDeviceCallBack(string msg)
@@ -100,6 +124,7 @@ public class GameManager : MonoBehaviour
         if (msg == "1")
         {
             settings.Master = true;
+            connectionPage.GetComponent<ConnectionPage>().LoadingScreen.SetActive(false);
             OpenPage("SetupPage1", true);
         }
         else
@@ -112,7 +137,14 @@ public class GameManager : MonoBehaviour
     {
         Settings.Master = false;
         settings.ConnectedDeviceName = device;
+        BluetoothPlugin.WriteAddDevice(device);
         OpenPage("SetupPage1", true);
+    }
+
+    public void DisconnectedCallBack(string status)
+    {
+        settings.ResetSettings();
+        OpenPage("ConnectionPage", false);
     }
 
     public void ReceivedDataCallBack(string msg)
@@ -130,24 +162,88 @@ public class GameManager : MonoBehaviour
                 else if(split[0].Equals("grid"))
                 {
                     Settings.SizeOfGrid = int.Parse(split[1]);
+                    insSetupPage1.ReceiveGridSize(split[1]);
                 }
                 else if (split[0].Equals("shots"))
                 {
                     Settings.NumOfShots = int.Parse(split[1]);
+                    insSetupPage1.ReceiveNumOfShots(split[1]);
                 }
             }
             else
             {
-
+                if (msg.Equals("continue"))
+                {
+                    insSetupPage1.NextPage();
+                }
             }
         }
         else if(setUpPage2.activeSelf)
         {
-
+            SetupPage2 insSetupPage2 = setUpPage2.GetComponent<SetupPage2>();
+            if(msg.Equals("enemyisready"))
+            {
+                insSetupPage2.EnemyIsReady();
+            }
+            else if(msg.Equals("doublecheck"))
+            {
+                insSetupPage2.DoubleCheckReceived();
+            }
+            else if(msg.Equals("notready"))
+            {
+                insSetupPage2.SetEnemyStatus(false);
+            }
+            else if(msg.Equals("ready"))
+            {
+                insSetupPage2.SetEnemyStatus(true);
+            }
         }
         else if(gamePage.activeSelf)
         {
-
+            GamePage insGamePage = gamePage.GetComponent<GamePage>();
+            string[] split = msg.Split('.');
+            if (split.Length > 1)
+            {
+                if(split[0].Equals("coordenates"))
+                {
+                    insGamePage.ReceiveTry(split[1]);
+                }
+            }
+            else
+            {
+                if (msg.Equals("first"))
+                {
+                    insGamePage.ReceiveCoinFlip(true);
+                }
+                else if (msg.Equals("second"))
+                {
+                    insGamePage.ReceiveCoinFlip(false);
+                }
+                else if (msg.Equals("hit"))
+                {
+                    insGamePage.ReceiveHitOrMiss(true);
+                }
+                else if (msg.Equals("miss"))
+                {
+                    insGamePage.ReceiveHitOrMiss(false);
+                }
+                else if (msg.Equals("win"))
+                {
+                    insGamePage.ReceiveLost();
+                }
+                else if (msg.Equals("ready"))
+                {
+                    insGamePage.ReceiveReady();
+                }
+                else if (msg.Equals("tryagain"))
+                {
+                    insGamePage.ReceiveTryAgain();
+                }
+                else if (msg.Equals("exit"))
+                {
+                    insGamePage.ReceiveExit();
+                }
+            }
         }
 
     }

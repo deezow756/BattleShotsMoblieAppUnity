@@ -44,6 +44,11 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
         return instance.Call<string>("BtCheckIsOn");
     }
 
+    public override string GetDeviceName()
+    {
+        return instance.Call<string>("GetDeviceName");
+    }
+
     public override void EnableDiscoverable()
     {
         instance.Call("EnableDiscoverable");
@@ -69,9 +74,19 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
         instance.Call("ConnectToDevice", device);
     }
 
+    public override void Disconnect()
+    {
+        instance.Call("Disconnect");
+    }
+
     public override void ReceivePair()
     {
         instance.Call("ReceivePair");
+    }
+
+    public override string GetIsReceiving()
+    {
+        return instance.Call<string>("GetIsReceiving");
     }
 
     public override void ReceiveData()
@@ -82,6 +97,36 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
     public override void SendData(string msg)
     {
         instance.Call("SendData", msg);
+    }
+
+    public override void Toast(string msg)
+    {
+        instance.Call("ShowToast", msg);
+    }
+
+    public override void Reset()
+    {
+        instance.Call("Reset");
+    }
+
+    public override void WriteDevices(string devices)
+    {
+        instance.Call("WriteDevices", devices);
+    }
+
+    public override void WriteAddDevice(string device)
+    {
+        instance.Call("WriteAddDevice", device);
+    }
+
+    public override string ReadDevices()
+    {
+        return instance.Call<string>("ReadPlayedDevices");
+    }
+
+    public override string FileDevicesExists()
+    {
+        return instance.Call<string>("fileExistsUnity");
     }
 
     #endregion

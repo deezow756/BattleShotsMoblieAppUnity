@@ -13,16 +13,25 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.unity3d.player.UnityPlayer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+
+import static android.Manifest.*;
 
 
 public class BluetoothManager extends Fragment {
@@ -67,46 +76,49 @@ public class BluetoothManager extends Fragment {
     //region Utils
     public void ShowToast(String messaage)
     {
-        Toast.makeText(getActivity(), messaage, Toast.LENGTH_LONG).show();
+        try {
+            Toast.makeText(getActivity(), messaage, Toast.LENGTH_SHORT).show();
+        }
+        catch (Exception ex)
+        {
+            Log.d("ShowToast", "Error Showing Message");
+        }
     }
 
     void SendUnityMessage(String methodName, String parameter)
     {
-        UnityPlayer.UnitySendMessage(gameObjectName, methodName, parameter);
+        try {
+            UnityPlayer.UnitySendMessage(gameObjectName, methodName, parameter);
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Sending Message To Unity" + methodName + parameter);
+        }
+    }
+
+    public void Reset()
+    {
+        inputStream = null;
+        outputStream = null;
+        serverSocket = null;
+        Socket = null;
+        CurDevice = null;
+        ReceivePair();
     }
 //endregion
 
     //region Permissions
     public void PermissionChecks() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            //if (ActivityCompat.checkSelfPermission(getActivity(),
-            //Manifest.permission.ACCESS_COARSE_LOCATION)
-            //!= PackageManager.PERMISSION_GRANTED
-            //&&
-            //ActivityCompat.checkSelfPermission(getActivity(),
-            //Manifest.permission.ACCESS_FINE_LOCATION)
-            //!= PackageManager.PERMISSION_GRANTED) {
+        try {
+            if (Build.VERSION.SDK_INT >= 23) {
 
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            //}
-        } else {
-            ShowToast("Permission Already Granted");
+                requestPermissions(new String[]{permission.ACCESS_COARSE_LOCATION, permission.ACCESS_FINE_LOCATION}, 1);
+                requestPermissions(new String[]{permission.READ_EXTERNAL_STORAGE, permission.WRITE_EXTERNAL_STORAGE}, 2);
+            }
         }
-    }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == 1)
+        catch (Exception ex)
         {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //ShowToast("Location Permission Granted");
-            }
-            else {
-                //ShowToast("Location Permissin Denied");
-            }
+            ShowToast("Error Getting Permissions");
         }
     }
 //endregion
@@ -114,33 +126,62 @@ public class BluetoothManager extends Fragment {
     //region Bluetooth Checks
     public String BtCheck()
     {
-        if(btAdapter == null)
-        {
-            return "0";
+        try {
+            if (btAdapter == null) {
+                return "0";
+            } else {
+                return "1";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            return "1";
+            ShowToast("Error Checking Bluetooth Compatable");
+            return null;
         }
     }
 
     public String BtCheckIsOn()
     {
-        if(btAdapter.isEnabled())
-        {
-            ShowToast("Bluetooth Is On");
-            return "1";
+        try {
+            if (btAdapter.isEnabled()) {
+                return "1";
+            } else {
+                TurnBtOn();
+                return "0";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ShowToast("Turning On Bluetooth");
-            TurnBtOn();
-            return "0";
+            ShowToast("Error Checking Bluetooth Is On");
+            return  null;
         }
     }
     public void TurnBtOn()
     {
-        btAdapter.enable();
+        try {
+            btAdapter.enable();
+            ShowToast("Turning On Bluetooth");
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Turning On Bluetooth");
+        }
+    }
+
+    public String GetDeviceName()
+    {
+        try {
+            if (btAdapter.isEnabled()) {
+                return btAdapter.getName();
+            } else {
+                return null;
+            }
+        }
+        catch(Exception e)
+        {
+            ShowToast(e.getMessage());
+            return null;
+        }
     }
     //endregion
 
@@ -148,52 +189,77 @@ public class BluetoothManager extends Fragment {
 
     ArrayList<BluetoothDevice> PairedDeviceList;
     ArrayList<BluetoothDevice> NewDeviceList;
+    ArrayList<BluetoothDevice> DevicesFound;
 
     public void EnableDiscoverable()
     {
-        Intent dIntent =  new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        dIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivity(dIntent);
+        try {
+            Intent dIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            dIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(dIntent);
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Enabling Discoverable");
+        }
     }
 
     public String GetPairedDevices()
     {
-        int index = 0;
-        Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
+        try {
+            int index = 0;
+            Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
 
-        if(btDevices.size() > 0) {
-            String str = "";
+            if (btDevices.size() > 0) {
+                String str = "";
 
-            for (BluetoothDevice device : btDevices) {
-                PairedDeviceList.add((device));
-                if(index == btDevices.size())
-                {
-                    str += device.getName();
+                for (BluetoothDevice device : btDevices) {
+                    PairedDeviceList.add((device));
+                    if (index == btDevices.size()) {
+                        str += device.getName() + "." + device.getAddress();
+                    } else {
+                        str += device.getName() + "." + device.getAddress() + ",";
+                    }
                 }
-                else {
-                    str += device.getName() + ",";
-                }
+                return str;
+            } else {
+                return "no devices";
             }
-            return str;
         }
-        else
+        catch (Exception ex)
         {
-            return "no devices";
+            ShowToast("Error Getting Paired Devices");
+            return null;
         }
     }
 
     public void DiscoverDevices()
     {
-        NewDeviceList.clear();
-        IntentFilter i = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        getActivity().registerReceiver(receiver, i);
-        btAdapter.startDiscovery();
+        try {
+            NewDeviceList.clear();
+            DevicesFound = new ArrayList<>();
+            IntentFilter i = new IntentFilter();
+            i.addAction(BluetoothDevice.ACTION_FOUND);
+            getActivity().registerReceiver(receiver, i);
+            btAdapter.startDiscovery();
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Start Discovery");
+        }
     }
 
-    public void CancelDiscovery()
-    {
-        getActivity().unregisterReceiver(receiver);
-        btAdapter.cancelDiscovery();
+    public void CancelDiscovery() {
+        try {
+            if (btAdapter.isDiscovering()) {
+                getActivity().unregisterReceiver(receiver);
+                btAdapter.cancelDiscovery();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Cancel Discovery");
+        }
     }
 
     BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -202,12 +268,31 @@ public class BluetoothManager extends Fragment {
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                NewDeviceList.add(device);
-                //ShowToast(device.getName());
-                SendUnityMessage(CALLBACK_METHOD_DEVICEFOUND, device.getName());
+
+                if(!DevicesFound.contains(device)) {
+                    DevicesFound.add(device);
+                    NewDeviceList.add(device);
+                    //ShowToast(device.getName());
+                    SendUnityMessage(CALLBACK_METHOD_DEVICEFOUND, device.getName() + "." + device.getAddress());
+                }
             }
         }
     };
+
+    public void Disconnect()
+    {
+        try{
+            if(Socket != null && Socket.isConnected())
+            {
+                Socket.close();
+                Reset();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Disconnecting");
+        }
+    }
     //endregion
 
     //region Bluetooth Connecting Devices
@@ -219,7 +304,7 @@ public class BluetoothManager extends Fragment {
 
     public boolean isReceiving = false;
 
-    public String GetIsReceviving()
+    public String GetIsReceiving()
     {
         if (isReceiving)
         {
@@ -233,57 +318,63 @@ public class BluetoothManager extends Fragment {
 
     public void ReceivePair()
     {
-        ShowToast("Receiving Connection");
-        isReceiving = true;
-        Thread Receive = new Thread()
-        {
-            @Override
-            public void run() {
-                try {
-                    serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("BattleShots",myUUID);
-                }catch (IOException e)
-                {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ShowToast("Failed To Create Server Socket");
+        try {
+            if (btAdapter.isEnabled()) {
+                isReceiving = true;
+                Thread Receive = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("BattleShots", myUUID);
+                        } catch (IOException e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Failed To Create Server Socket");
+                                }
+                            });
+                            return;
                         }
-                    });
-                    return;
-                }
 
-                Socket = null;
+                        Socket = null;
+                        isReceiving = true;
 
-                while(Socket == null)
-                {
-                    try {
-                        Socket = serverSocket.accept();
-                    }catch (IOException e)
-                    {
-                    }
-
-                    if(isReceiving == false)
-                    {
-                        break;
-                    }
-
-                    if(Socket != null)
-                    {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                CurDevice = Socket.getRemoteDevice();
-                                ShowToast("Connected To: " + CurDevice.getName());
-                                ReceivedPairCallBack(CurDevice.getName());
-                                SetupInputOutputStreams();
+                        while (Socket == null && isReceiving) {
+                            try {
+                                Socket = serverSocket.accept();
+                            } catch (IOException e) {
                             }
-                        });
-                        break;
+
+                            if (isReceiving == false) {
+                                break;
+                            }
+
+                            if (Socket != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        CurDevice = Socket.getRemoteDevice();
+                                        ShowToast("Connected To: " + CurDevice.getName());
+                                        CancelDiscovery();
+                                        IntentFilter i = new IntentFilter();
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                        getActivity().registerReceiver(statusReceiver, i);
+                                        ReceivedPairCallBack(CurDevice.getName() + "." + CurDevice.getAddress());
+                                        SetupInputOutputStreams();
+                                    }
+                                });
+                                break;
+                            }
+                        }
                     }
-                }
+                };
+                Receive.start();
             }
-        };
-        Receive.run();
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Starting Receive Bluetooth Connection");
+        }
     }
 
     public void ReceivedPairCallBack(String _device)
@@ -291,77 +382,113 @@ public class BluetoothManager extends Fragment {
         SendUnityMessage("ReceivedPairCallBack", _device);
     }
 
-    public void ConnectToDevice(String _device)
+    public void ConnectToDevice(final String _device)
     {
-        boolean skip = false;
-        ShowToast("Connecting To Device: " + _device);
-        isReceiving = false;
-        CancelDiscovery();
-        for(BluetoothDevice device : PairedDeviceList)
-        {
-            if(device.getName().equals(_device))
-            {
-                CurDevice = device;
-                skip = true;
-                break;
-            }
-        }
+        try {
+            if (btAdapter.isEnabled()) {
+                boolean skip = false;
+                isReceiving = false;
+                CancelDiscovery();
+                for (BluetoothDevice device : PairedDeviceList) {
+                    String s = device.getName() + "." + device.getAddress();
 
-        if(!skip) {
-            for (BluetoothDevice device : NewDeviceList) {
-                if (device.getName().equals(_device)) {
-                    CurDevice = device;
+                    if (s.equals(_device)) {
+                        CurDevice = device;
+                        skip = true;
+                        break;
+                    }
                 }
+
+                if (!skip) {
+                    for (BluetoothDevice device : NewDeviceList) {
+                        String s = device.getName() + "." + device.getAddress();
+                        if (s.equals(_device)) {
+                            CurDevice = device;
+                            break;
+                        }
+                    }
+                }
+                Thread Connect = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            Socket = CurDevice.createRfcommSocketToServiceRecord(myUUID);
+                        } catch (Exception e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Failed To Create Socket");
+                                    PairedWithDeviceCallBack("0");
+                                    ReceivePair();
+                                }
+                            });
+                        }
+                        try {
+                            Socket.connect();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Connected To: " + CurDevice.getName());
+                                    IntentFilter i = new IntentFilter();
+                                    i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                    getActivity().registerReceiver(statusReceiver, i);
+                                    WriteAddDevice(_device);
+                                    PairedWithDeviceCallBack("1");
+                                    SetupInputOutputStreams();
+                                }
+                            });
+                        } catch (Exception e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    PairedWithDeviceCallBack("0");
+                                    ShowToast("Failed To Connect");
+                                    ReceivePair();
+                                }
+                            });
+                        }
+                    }
+                };
+                Connect.start();
             }
         }
-        Thread Connect = new Thread()
+        catch (Exception ex)
         {
-            @Override
-            public void run() {
-                try
-                {
-                    Socket = CurDevice.createRfcommSocketToServiceRecord(myUUID);
-                }catch (IOException e)
-                {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ShowToast("Failed To Create Socket");
-                            PairedWithDeviceCallBack("0");
-                            ReceiveData();
-                        }
-                    });
-                }
-                try
-                {
-                    Socket.connect();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ShowToast("Connected To: " + CurDevice.getName());
-                            PairedWithDeviceCallBack("1");
-                            SetupInputOutputStreams();
-                        }
-                    });
-                }catch (IOException e)
-                {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            PairedWithDeviceCallBack("0");
-                            ShowToast("Failed To Connect");
-                            ReceiveData();
-                        }
-                    });
-                }
-            }
-        };
-        Connect.run();
+            ShowToast("Error Connection To Device");
+        }
     }
 
     public void PairedWithDeviceCallBack(String status)
     {
         SendUnityMessage("ConnectedToDeviceCallBack", status);
+    }
+
+    BroadcastReceiver statusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                try {
+                    ShowToast("Disconnected From " + CurDevice.getName());
+                    DisconnectCallBack();
+                    getActivity().unregisterReceiver(statusReceiver);
+
+                    Socket.close();
+                    Socket = null;
+                    CurDevice = null;
+                    ReceivePair();
+                }
+                catch(Exception e)
+                {
+                    ShowToast("failed to disconnect");
+                }
+            }
+        }
+    };
+
+    public void DisconnectCallBack()
+    {
+        SendUnityMessage("DisconnectedCallBack", "1");
     }
     //endregion
 
@@ -372,12 +499,19 @@ public class BluetoothManager extends Fragment {
 
     public void SetupInputOutputStreams() {
         try {
-            inputStream = Socket.getInputStream();
-            outputStream = Socket.getOutputStream();
-            ReceiveData();
-        }catch (IOException e)
+            if (Socket != null) {
+                try {
+                    inputStream = Socket.getInputStream();
+                    outputStream = Socket.getOutputStream();
+                    ReceiveData();
+                } catch (IOException e) {
+                    ShowToast("Failed To Setup Streams");
+                }
+            }
+        }
+        catch (Exception ex)
         {
-            ShowToast("Failed To Setup Streams");
+            ShowToast("Error Setting Up Input Output Stream");
         }
     }
 
@@ -389,53 +523,58 @@ public class BluetoothManager extends Fragment {
     public String Msg;
     public void ReceiveData()
     {
-        Thread _ReceiveData = new Thread()
-        {
-            @Override
-            public void run() {
-                while(Socket.isConnected())
-                {
-                    final byte[] buffer = new byte[1024];
-                    int bytes = 0;
+        try {
+            if (Socket.isConnected()) {
+                if (inputStream != null && outputStream != null) {
+                    Thread _ReceiveData = new Thread() {
+                        @Override
+                        public void run() {
+                            while (Socket.isConnected()) {
+                                final byte[] buffer = new byte[1024];
+                                int bytes = 0;
 
-                    try {
-                        bytes = inputStream.read(buffer);
+                                try {
+                                    bytes = inputStream.read(buffer);
 
-                    }catch (IOException e)
-                    {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ShowToast("Error Receiving Data");
-                            }
-                        });
-                    }
-
-                    if(bytes > 0)
-                    {
-                        try {
-                           Msg = new String(buffer, "UTF-8");
-                        }catch (IOException e)
-                        {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ShowToast("Failed To Convert Buffer To String");
+                                } catch (IOException e) {
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ShowToast("Error Receiving Data");
+                                        }
+                                    });
                                 }
-                            });
-                        }
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ShowToast("Received Data");
-                                ReceivedDataCallBack(Msg);
+
+                                if (bytes > 0) {
+                                    try {
+                                        Msg = new String(buffer, "UTF-8");
+                                    } catch (IOException e) {
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ShowToast("Failed To Convert Buffer To String");
+                                            }
+                                        });
+                                    }
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //ShowToast("Received Data: " + Msg);
+                                            ReceivedDataCallBack(Msg);
+                                        }
+                                    });
+                                }
                             }
-                        });
-                    }
+                        }
+                    };
+                    _ReceiveData.start();
                 }
             }
-        };
-        _ReceiveData.run();
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Receiving Data");
+        }
     }
 
     public void DataSentCallBack(String status)
@@ -446,34 +585,141 @@ public class BluetoothManager extends Fragment {
     public String DataToSend;
     public void SendData(String data)
     {
-        DataToSend = data;
-        Thread _SendData = new Thread()
-        {
-            @Override
-            public void run() {
-                try
-                {
-                    outputStream.write(DataToSend.getBytes());
-                    getActivity().runOnUiThread(new Runnable() {
+        try {
+            if (Socket.isConnected()) {
+                if (inputStream != null && outputStream != null) {
+                    DataToSend = data;
+                    Thread _SendData = new Thread() {
                         @Override
                         public void run() {
-                            ShowToast("Message Sent");
-                            DataSentCallBack("1");
+                            try {
+                                outputStream.write(DataToSend.getBytes());
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //ShowToast("Message Sent: " + DataToSend);
+                                        DataSentCallBack("1");
+                                    }
+                                });
+                            } catch (IOException e) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ShowToast("Failed To Send Message");
+                                        DataSentCallBack("0");
+                                    }
+                                });
+                            }
                         }
-                    });
-                }catch (IOException e)
-                {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ShowToast("Failed To Send Message");
-                            DataSentCallBack("0");
-                        }
-                    });
+                    };
+                    _SendData.start();
                 }
             }
-        };
-        _SendData.run();
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Sending Data");
+        }
+    }
+
+    //endregion
+
+    //region Read/Write Storage
+
+    static final String FILE_NAME = "devices.txt";
+    static final int READ_BLOCK_SIZE = 1024;
+
+    public void WriteDevices(String msg)
+    {
+        try {
+            FileOutputStream fileout = getActivity().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
+            outputWriter.write(msg);
+            outputWriter.close();
+
+        } catch (Exception e) {
+            ShowToast(e.getMessage());
+        }
+    }
+
+    public void WriteAddDevice(String msg)
+    {
+        try {
+            if(fileExists()) {
+                String s = ReadPlayedDevices();
+
+                s += "," + msg;
+
+                FileOutputStream fileout = getActivity().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+                OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
+                outputWriter.write(msg);
+                outputWriter.close();
+            }
+
+        } catch (Exception e) {
+            ShowToast(e.getMessage());
+        }
+    }
+
+    public String ReadPlayedDevices()
+    {
+        try {
+            if(fileExists()) {
+                FileInputStream fileIn = getActivity().openFileInput(FILE_NAME);
+                InputStreamReader InputRead = new InputStreamReader(fileIn);
+
+                char[] inputBuffer = new char[READ_BLOCK_SIZE];
+                String s = "";
+                int charRead;
+
+                while ((charRead = InputRead.read(inputBuffer)) > 0) {
+                    // char to string conversion
+                    String readstring = String.copyValueOf(inputBuffer, 0, charRead);
+                    s += readstring;
+                }
+                InputRead.close();
+
+                return s;
+            }
+            else
+            {
+                return "";
+            }
+
+        } catch (Exception e) {
+            ShowToast(e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean fileExists() {
+        try {
+            File file = getActivity().getFileStreamPath(FILE_NAME);
+            if (file == null || !file.exists()) {
+                return false;
+            }
+            return true;
+        }
+        catch(Exception e)
+        {
+            ShowToast(e.getMessage());
+            return false;
+        }
+    }
+
+    public String fileExistsUnity() {
+        try {
+            File file = getActivity().getFileStreamPath(FILE_NAME);
+            if (file == null || !file.exists()) {
+                return "0";
+            }
+            return "1";
+        }
+        catch(Exception e)
+        {
+            ShowToast(e.getMessage());
+            return null;
+        }
     }
 
     //endregion

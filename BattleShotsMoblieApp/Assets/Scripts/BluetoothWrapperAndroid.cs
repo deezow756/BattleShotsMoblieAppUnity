@@ -89,6 +89,21 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
         return instance.Call<string>("GetIsReceiving");
     }
 
+    public override void ReconnectReceive()
+    {
+        instance.Call("ReconnectReceive");
+    }
+
+    public override void ReconnectSend()
+    {
+        instance.Call("ReconnectSend");
+    }
+
+    public override void ReconnectCancel()
+    {
+        instance.Call("ReconnectCancel");
+    }
+
     public override void ReceiveData()
     {
         instance.Call("ReceiveData");
@@ -107,26 +122,6 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
     public override void Reset()
     {
         instance.Call("Reset");
-    }
-
-    public override void WriteDevices(string devices)
-    {
-        instance.Call("WriteDevices", devices);
-    }
-
-    public override void WriteAddDevice(string device)
-    {
-        instance.Call("WriteAddDevice", device);
-    }
-
-    public override string ReadDevices()
-    {
-        return instance.Call<string>("ReadPlayedDevices");
-    }
-
-    public override string FileDevicesExists()
-    {
-        return instance.Call<string>("fileExistsUnity");
     }
 
     #endregion

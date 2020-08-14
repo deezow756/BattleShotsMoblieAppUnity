@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Animation Stuff\Animations\Hit\HitAnimationManager.cs" />
     <Compile Include="Assets\Imports\Fonts\Script\scriptTexttest.cs" />
     <Compile Include="Assets\Scripts\BluetoothWrapper.cs" />
     <Compile Include="Assets\Scripts\BluetoothWrapperAndroid.cs" />

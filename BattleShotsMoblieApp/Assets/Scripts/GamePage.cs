@@ -43,7 +43,17 @@ public class GamePage : MonoBehaviour
     private GameObject LeaveGamePanel;
 
     [SerializeField]
+    public GameObject reconnectPanel;
+    [SerializeField]
+    public GameObject reconnectScreen;
+    [SerializeField]
+    private GameObject reconnectBtnCancel;
+
+    [SerializeField]
     private GameObject helpPanel;
+
+    [SerializeField]
+    GameObject hitAnimation;
 
     private void Update()
     {
@@ -58,9 +68,9 @@ public class GamePage : MonoBehaviour
 
     public void LeaveYes()
     {
+        GameManager.BluetoothPlugin.Disconnect();
         gameManager.Settings.ResetSettings();
         GameManager.BluetoothPlugin.Reset();
-        GameManager.BluetoothPlugin.Disconnect();
         gameManager.OpenPage("ConnectionPage", false);
     }
 
@@ -160,7 +170,8 @@ public class GamePage : MonoBehaviour
         {
             if (gameManager.Settings.YourShotCoodinates.Contains(coordenates))
             {
-                GameManager.BluetoothPlugin.Toast(gameManager.Settings.EnemyName + " Hit");
+                //GameManager.BluetoothPlugin.Toast(gameManager.Settings.EnemyName + " Hit");
+                hitAnimation.SetActive(true);
                 GameManager.BluetoothPlugin.SendData("hit");
                 string[] split = coordenates.Split(',');
                 yourGridInstance[int.Parse(split[0]), int.Parse(split[1])].GetComponent<GridButtonScript>().SetShotWithCross();
@@ -168,8 +179,11 @@ public class GamePage : MonoBehaviour
             }
             else
             {
-                GameManager.BluetoothPlugin.Toast(gameManager.Settings.EnemyName + " Missed");
+                //GameManager.BluetoothPlugin.Toast(gameManager.Settings.EnemyName + " Missed");
                 GameManager.BluetoothPlugin.SendData("miss");
+                string[] split = coordenates.Split(',');
+                yourGridInstance[int.Parse(split[0]), int.Parse(split[1])].GetComponent<GridButtonScript>().SetCross();
+                txtShotsleft.text = (int.Parse(txtShotsleft.text) - 1).ToString();
             }
         }
         catch (Exception ex)
@@ -413,5 +427,36 @@ public class GamePage : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
+    }
+
+    public void BtnRetry()
+    {
+        if (gameManager.StartReconnectionStatus)
+        {
+            GameManager.BluetoothPlugin.ReconnectSend();
+            reconnectScreen.SetActive(true);
+            reconnectBtnCancel.SetActive(false);
+            reconnectPanel.SetActive(false);
+        }
+        else
+        {
+            GameManager.BluetoothPlugin.ReconnectReceive();
+            reconnectScreen.SetActive(true);
+            reconnectBtnCancel.SetActive(true);
+            reconnectPanel.SetActive(false);
+        }
+    }
+
+    public void BtnExit()
+    {
+        gameManager.CancelReconnectedCallBack("1");
+    }
+
+    public void BtnCancel()
+    {
+        GameManager.BluetoothPlugin.ReconnectCancel();
+        reconnectScreen.SetActive(false);
+        reconnectBtnCancel.SetActive(false);
+        reconnectPanel.SetActive(true);
     }
 }

@@ -238,10 +238,20 @@ public class BluetoothManager extends Fragment {
         try {
             NewDeviceList.clear();
             DevicesFound = new ArrayList<>();
-            IntentFilter i = new IntentFilter();
-            i.addAction(BluetoothDevice.ACTION_FOUND);
-            getActivity().registerReceiver(receiver, i);
-            btAdapter.startDiscovery();
+            try {
+                getActivity().unregisterReceiver(statusReceiver);
+                IntentFilter i = new IntentFilter();
+                i.addAction(BluetoothDevice.ACTION_FOUND);
+                getActivity().registerReceiver(receiver, i);
+                btAdapter.startDiscovery();
+            }
+            catch (Exception ex)
+            {
+                IntentFilter i = new IntentFilter();
+                i.addAction(BluetoothDevice.ACTION_FOUND);
+                getActivity().registerReceiver(receiver, i);
+                btAdapter.startDiscovery();
+            }
         }
         catch (Exception ex)
         {
@@ -356,11 +366,24 @@ public class BluetoothManager extends Fragment {
                                         CurDevice = Socket.getRemoteDevice();
                                         ShowToast("Connected To: " + CurDevice.getName());
                                         CancelDiscovery();
-                                        IntentFilter i = new IntentFilter();
-                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-                                        getActivity().registerReceiver(statusReceiver, i);
-                                        ReceivedPairCallBack(CurDevice.getName() + "." + CurDevice.getAddress());
-                                        SetupInputOutputStreams();
+                                        try {
+                                            getActivity().unregisterReceiver(receiver);
+                                            IntentFilter i = new IntentFilter();
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                            getActivity().registerReceiver(statusReceiver, i);
+                                            ReceivedPairCallBack(CurDevice.getName() + "." + CurDevice.getAddress());
+                                            SetupInputOutputStreams();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            IntentFilter i = new IntentFilter();
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                            getActivity().registerReceiver(statusReceiver, i);
+                                            ReceivedPairCallBack(CurDevice.getName() + "." + CurDevice.getAddress());
+                                            SetupInputOutputStreams();
+                                        }
                                     }
                                 });
                                 break;
@@ -429,12 +452,24 @@ public class BluetoothManager extends Fragment {
                                 @Override
                                 public void run() {
                                     ShowToast("Connected To: " + CurDevice.getName());
-                                    IntentFilter i = new IntentFilter();
-                                    i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-                                    getActivity().registerReceiver(statusReceiver, i);
-                                    WriteAddDevice(_device);
-                                    PairedWithDeviceCallBack("1");
-                                    SetupInputOutputStreams();
+                                    try {
+                                        getActivity().unregisterReceiver(receiver);
+                                        IntentFilter i = new IntentFilter();
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                        getActivity().registerReceiver(statusReceiver, i);
+                                        PairedWithDeviceCallBack("1");
+                                        SetupInputOutputStreams();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        IntentFilter i = new IntentFilter();
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                        getActivity().registerReceiver(statusReceiver, i);
+                                        PairedWithDeviceCallBack("1");
+                                        SetupInputOutputStreams();
+                                    }
                                 }
                             });
                         } catch (Exception e) {
@@ -463,6 +498,38 @@ public class BluetoothManager extends Fragment {
         SendUnityMessage("ConnectedToDeviceCallBack", status);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        SendUnityMessage("OnResume", "");
+        if(Socket != null)
+        {
+            ShowToast("Socket Not Null");
+
+            if(!Socket.isConnected())
+            {
+                StartReconnectionCallBack("1");
+                ShowToast("Starting Reconnection");
+
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        try {
+            if(Socket != null) {
+                if (Socket.isConnected()) {
+                    Socket.close();
+                    ShowToast("Bluetooth Connection Closed");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -474,9 +541,19 @@ public class BluetoothManager extends Fragment {
                     getActivity().unregisterReceiver(statusReceiver);
 
                     Socket.close();
-                    Socket = null;
-                    CurDevice = null;
-                    ReceivePair();
+                    //Socket = null;
+                    //CurDevice = null;
+                    //ReceivePair();
+                    StartReconnectionCallBack("0");
+                }
+                catch(Exception e)
+                {
+                    ShowToast("failed to disconnect");
+                }
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                try {
+                    ShowToast(CurDevice.getName() + " Is Exiting Game");
                 }
                 catch(Exception e)
                 {
@@ -490,11 +567,172 @@ public class BluetoothManager extends Fragment {
     {
         SendUnityMessage("DisconnectedCallBack", "1");
     }
+
+    public void StartReconnectionCallBack(String val)
+    {
+        SendUnityMessage("StartReconnectionCallBack", val);
+    }
+
+    //endregion
+
+    //region Bluetooth Reconnect
+
+    private boolean reconnectIsReceiving = false;
+
+    public void ReconnectReceive()
+    {
+        try {
+            if (btAdapter.isEnabled()) {
+                reconnectIsReceiving = true;
+                Thread Receive = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("BattleShots", myUUID);
+                        } catch (IOException e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Failed To Create Server Socket");
+                                }
+                            });
+                            return;
+                        }
+
+                        while (Socket == null && reconnectIsReceiving) {
+                            try {
+                                Socket = serverSocket.accept();
+                            } catch (IOException e) {
+                            }
+
+                            if (reconnectIsReceiving == false) {
+                                break;
+                            }
+
+                            if (Socket != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        reconnectIsReceiving = false;
+                                        ShowToast("Reconnected To: " + CurDevice.getName());
+                                        try {
+                                            getActivity().unregisterReceiver(receiver);
+                                            IntentFilter i = new IntentFilter();
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                            getActivity().registerReceiver(statusReceiver, i);
+                                            SetupInputOutputStreams();
+                                            ReconnectedCallBack("0");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            IntentFilter i = new IntentFilter();
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                            i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                            getActivity().registerReceiver(statusReceiver, i);
+                                            SetupInputOutputStreams();
+                                            ReconnectedCallBack("0");
+                                        }
+                                    }
+                                });
+                                break;
+                            }
+                        }
+                    }
+                };
+                Receive.start();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Starting Receive Bluetooth Connection");
+        }
+    }
+
+    public void ReconnectSend()
+    {
+        try {
+            if (btAdapter.isEnabled()) {
+
+                Thread Connect = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            Socket = CurDevice.createRfcommSocketToServiceRecord(myUUID);
+                        } catch (Exception e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Failed To Create Socket");
+                                    StartReconnectionCallBack("1");
+                                }
+                            });
+                        }
+                        try {
+                            Socket.connect();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Reconnected To: " + CurDevice.getName());
+                                    try {
+                                        getActivity().unregisterReceiver(receiver);
+                                        IntentFilter i = new IntentFilter();
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                        getActivity().registerReceiver(statusReceiver, i);
+                                        SetupInputOutputStreams();
+                                        ReconnectedCallBack("1");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        IntentFilter i = new IntentFilter();
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                                        i.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                                        getActivity().registerReceiver(statusReceiver, i);
+                                        SetupInputOutputStreams();
+                                        ReconnectedCallBack("1");
+                                    }
+                                }
+                            });
+                        } catch (Exception e) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ShowToast("Failed To Reconnect");
+                                    StartReconnectionCallBack("1");
+                                }
+                            });
+                        }
+                    }
+                };
+                Connect.start();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Error Connection To Device");
+        }
+    }
+
+    public void ReconnectCancel()
+    {
+        reconnectIsReceiving = false;
+    }
+
+    public void ReconnectedCallBack(String status)
+    {
+        SendUnityMessage("ReconnectedCallBack", status);
+    }
+
+    public void CancelReconnectedCallBack()
+    {
+        SendUnityMessage("CancelReconnectedCallBack", "1");
+    }
+
     //endregion
 
     //region Bluetooth Send/Receive
-
-    public InputStream inputStream;
+    protected InputStream inputStream;
     public OutputStream outputStream;
 
     public void SetupInputOutputStreams() {
@@ -540,7 +778,7 @@ public class BluetoothManager extends Fragment {
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            ShowToast("Error Receiving Data");
+                                            //ShowToast("Error Receiving Data");
                                         }
                                     });
                                 }
@@ -552,7 +790,7 @@ public class BluetoothManager extends Fragment {
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                ShowToast("Failed To Convert Buffer To String");
+                                                //ShowToast("Failed To Convert Buffer To String");
                                             }
                                         });
                                     }
@@ -573,7 +811,7 @@ public class BluetoothManager extends Fragment {
         }
         catch (Exception ex)
         {
-            ShowToast("Error Receiving Data");
+            //ShowToast("Error Receiving Data");
         }
     }
 
@@ -619,106 +857,6 @@ public class BluetoothManager extends Fragment {
         catch (Exception ex)
         {
             ShowToast("Error Sending Data");
-        }
-    }
-
-    //endregion
-
-    //region Read/Write Storage
-
-    static final String FILE_NAME = "devices.txt";
-    static final int READ_BLOCK_SIZE = 1024;
-
-    public void WriteDevices(String msg)
-    {
-        try {
-            FileOutputStream fileout = getActivity().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
-            outputWriter.write(msg);
-            outputWriter.close();
-
-        } catch (Exception e) {
-            ShowToast(e.getMessage());
-        }
-    }
-
-    public void WriteAddDevice(String msg)
-    {
-        try {
-            if(fileExists()) {
-                String s = ReadPlayedDevices();
-
-                s += "," + msg;
-
-                FileOutputStream fileout = getActivity().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-                OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
-                outputWriter.write(msg);
-                outputWriter.close();
-            }
-
-        } catch (Exception e) {
-            ShowToast(e.getMessage());
-        }
-    }
-
-    public String ReadPlayedDevices()
-    {
-        try {
-            if(fileExists()) {
-                FileInputStream fileIn = getActivity().openFileInput(FILE_NAME);
-                InputStreamReader InputRead = new InputStreamReader(fileIn);
-
-                char[] inputBuffer = new char[READ_BLOCK_SIZE];
-                String s = "";
-                int charRead;
-
-                while ((charRead = InputRead.read(inputBuffer)) > 0) {
-                    // char to string conversion
-                    String readstring = String.copyValueOf(inputBuffer, 0, charRead);
-                    s += readstring;
-                }
-                InputRead.close();
-
-                return s;
-            }
-            else
-            {
-                return "";
-            }
-
-        } catch (Exception e) {
-            ShowToast(e.getMessage());
-            return null;
-        }
-    }
-
-    public boolean fileExists() {
-        try {
-            File file = getActivity().getFileStreamPath(FILE_NAME);
-            if (file == null || !file.exists()) {
-                return false;
-            }
-            return true;
-        }
-        catch(Exception e)
-        {
-            ShowToast(e.getMessage());
-            return false;
-        }
-    }
-
-    public String fileExistsUnity() {
-        try {
-            File file = getActivity().getFileStreamPath(FILE_NAME);
-            if (file == null || !file.exists()) {
-                return "0";
-            }
-            return "1";
-        }
-        catch(Exception e)
-        {
-            ShowToast(e.getMessage());
-            return null;
         }
     }
 

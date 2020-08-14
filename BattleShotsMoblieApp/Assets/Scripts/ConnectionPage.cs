@@ -25,9 +25,6 @@ public class ConnectionPage : MonoBehaviour
     [SerializeField]
     private GameObject errorText;
 
-    List<string> knownPlayedDevices;
-    List<string> actualPlayedDevices = new List<string>();
-
     private List<GameObject> prevButtons = new List<GameObject>();
     private string[] knownDeviceNames;
     private int knownDeviceIndex;
@@ -64,7 +61,7 @@ public class ConnectionPage : MonoBehaviour
         helpPanel.SetActive(false);
         GetKnownDevices();
         GetNewDevices();
-        GetPlayedDevices();
+        txtDeviceName.text = GameManager.BluetoothPlugin.GetDeviceName();
     }
 
     private void OnDisable()
@@ -81,26 +78,12 @@ public class ConnectionPage : MonoBehaviour
         GameManager.BluetoothPlugin.EnableDiscoverable();
     }
 
-    public void GetPlayedDevices()
-    {
-        string s = GameManager.BluetoothPlugin.FileDevicesExists();
-        if (s.Equals("1"))
-        {
-            string ss = GameManager.BluetoothPlugin.ReadDevices();
-            if (!ss.Equals(""))
-            {
-                string[] lstDevices = ss.Split(',');
-                knownPlayedDevices = new List<string>(lstDevices);
-            }
-        }
-    }
-
     public void GetKnownDevices()
     {
         try
         {
             knownDeviceNames = null;
-            string devices = GameManager.BluetoothPlugin.GetPairedDevices(); ;
+            string devices = GameManager.BluetoothPlugin.GetPairedDevices();
             knownDeviceNames = devices.Split(',');
             if (knownDeviceNames.Length > 0)
             {
@@ -210,7 +193,6 @@ public class ConnectionPage : MonoBehaviour
         {
             LoadingScreen.SetActive(true);
             GameManager.BluetoothPlugin.ConnectToDevice(name);
-            GameManager.BluetoothPlugin.WriteAddDevice(name);
             //gameManager.OpenPage("SetupPage1", true);
         }
         catch (Exception ex)
@@ -233,60 +215,21 @@ public class ConnectionPage : MonoBehaviour
             {
                 if (knownDeviceIndex < knownDeviceNames.Length)
                 {
-                    bool skip = false;
-                    if (knownPlayedDevices != null)
+                    if (knownDeviceNames[knownDeviceIndex] != "")
                     {
-                        if (knownPlayedDevices.Count > 0)
-                        {
-                            string[] split = knownDeviceNames[knownDeviceIndex].Split('.');
-                            for (int i = 0; i < knownPlayedDevices.Count; i++)
-                            {
-                                if (split[1] == knownPlayedDevices[i].Split('.')[1])
-                                {
-                                    GameObject button = Instantiate(listButtonPrefab, prevList.transform);
-                                    button.GetComponent<ButtonScript>().connectionPage = this;
-                                    button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
-                                    button.transform.name = knownDeviceNames[knownDeviceIndex];
-                                    button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex].Split('.')[0];
-                                    button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
-                                    prevButtons.Add(button);
-                                    if (!actualPlayedDevices.Contains(knownDeviceNames[knownDeviceIndex]))
-                                    {
-                                        actualPlayedDevices.Add(knownDeviceNames[knownDeviceIndex]);
-                                    }
-                                    skip = true;
-                                    break;
-                                }
-                            }
-                        }
+                        GameObject button = Instantiate(listButtonPrefab, prevList.transform);
+                        button.GetComponent<ButtonScript>().connectionPage = this;
+                        button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
+                        button.transform.name = knownDeviceNames[knownDeviceIndex];
+                        button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex].Split('.')[0];
+                        button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
+                        prevButtons.Add(button);
                     }
 
-                    if (!skip)
-                    {
-                        if (knownDeviceNames[knownDeviceIndex] != "")
-                        {
-                            GameObject button = Instantiate(listButtonPrefab, newList.transform);
-                            button.GetComponent<ButtonScript>().connectionPage = this;
-                            button.GetComponent<ButtonScript>().ButtonName = knownDeviceNames[knownDeviceIndex];
-                            button.transform.name = knownDeviceNames[knownDeviceIndex];
-                            button.GetComponentInChildren<Text>().text = knownDeviceNames[knownDeviceIndex].Split('.')[0];
-                            button.GetComponent<Button>().onClick.AddListener(button.GetComponent<ButtonScript>().Clicked);
-                            prevButtons.Add(button);
-                        }
-                    }
-                    
                     if (knownDeviceIndex == knownDeviceNames.Length - 1)
                     {
                         gettingKnownDevices = false;
                         knownDeviceIndex = 0;
-                        if (actualPlayedDevices != null)
-                        {
-                            if (actualPlayedDevices.Count > 0)
-                            {
-                                GameManager.BluetoothPlugin.WriteDevices(gameManager.ListToString(actualPlayedDevices));
-                            }
-                        }
-                        knownPlayedDevices = actualPlayedDevices;
                     }
                     else
                     {

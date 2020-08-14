@@ -35,8 +35,8 @@ public class StartPage : MonoBehaviour
         }
         else
         {
-            Invoke("CheckBluetoothCompatable", 1);
-            Invoke("PermissionChecks", 1);
+            Invoke("CheckBluetoothCompatable", 0.2f);
+            Invoke("PermissionChecks", 0.2f);
         }
     }
 
@@ -75,7 +75,8 @@ public class StartPage : MonoBehaviour
 
     private void OnEnable()
     {
-        
+        ErrorTextObject.SetActive(true);
+        ErrorTextObject.GetComponent<Text>().text = "Battle Shots!";
     }
 
     private void Update()

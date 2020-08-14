@@ -42,6 +42,13 @@ public class SetupPage1 : MonoBehaviour
     private GameObject LeaveGamePanel;
 
     [SerializeField]
+    public GameObject reconnectPanel;
+    [SerializeField]
+    public GameObject reconnectScreen;
+    [SerializeField]
+    private GameObject reconnectBtnCancel;
+
+    [SerializeField]
     private GameObject helpPanel;
 
     #endregion
@@ -98,6 +105,7 @@ public class SetupPage1 : MonoBehaviour
         EditorSection.SetActive(false);
         ReadOnlySection.SetActive(false);
         helpPanel.SetActive(false);
+        reconnectPanel.SetActive(false);
     }
 
     public void Continue()
@@ -249,5 +257,36 @@ public class SetupPage1 : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
+    }
+
+    public void BtnRetry()
+    {
+        if(gameManager.StartReconnectionStatus)
+        {
+            GameManager.BluetoothPlugin.ReconnectSend();
+            reconnectScreen.SetActive(true);
+            reconnectBtnCancel.SetActive(false);
+            reconnectPanel.SetActive(false);
+        }
+        else
+        {
+            GameManager.BluetoothPlugin.ReconnectReceive();
+            reconnectScreen.SetActive(true);
+            reconnectBtnCancel.SetActive(true);
+            reconnectPanel.SetActive(false);
+        }
+    }
+
+    public void BtnExit()
+    {
+        gameManager.CancelReconnectedCallBack("1");
+    }
+
+    public void BtnCancel()
+    {
+        GameManager.BluetoothPlugin.ReconnectCancel();
+        reconnectScreen.SetActive(false);
+        reconnectBtnCancel.SetActive(false);
+        reconnectPanel.SetActive(true);        
     }
 }

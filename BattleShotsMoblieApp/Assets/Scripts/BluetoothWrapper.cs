@@ -60,6 +60,12 @@ public class BluetoothWrapper : MonoBehaviour
 
     virtual public string GetIsReceiving() { return null; }
 
+    virtual public void ReconnectReceive() { }
+
+    virtual public void ReconnectSend() { }
+
+    virtual public void ReconnectCancel() { }
+
     virtual public void ReceiveData() { }
 
     virtual public void SendData(string msg) { }
@@ -67,14 +73,6 @@ public class BluetoothWrapper : MonoBehaviour
     virtual public void Toast(string msg) { }
 
     virtual public void Reset() { }
-
-    virtual public void WriteDevices(string devices) { }
-
-    virtual public void WriteAddDevice(string device) { }
-
-    virtual public string ReadDevices() { return null; }
-
-    virtual public string FileDevicesExists() { return null; }
 
     // ...
 

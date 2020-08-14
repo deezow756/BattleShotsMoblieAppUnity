@@ -7,6 +7,7 @@ ScriptsOnlyBuild:
     - GameManager
     - GamePage
     - GridButtonScript
+    - HitAnimationManager
     - LoadingScreenScript
     - SetupPage1
     - SetupPage2
@@ -76,45 +77,47 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11522}
     - Class: 114
-      Script: {instanceID: 11592}
+      Script: {instanceID: 11560}
     - Class: 114
-      Script: {instanceID: 11604}
+      Script: {instanceID: 11594}
     - Class: 114
-      Script: {instanceID: 11700}
+      Script: {instanceID: 11606}
     - Class: 114
-      Script: {instanceID: 11788}
+      Script: {instanceID: 11702}
     - Class: 114
-      Script: {instanceID: 11836}
+      Script: {instanceID: 11790}
     - Class: 114
-      Script: {instanceID: 11978}
+      Script: {instanceID: 11838}
     - Class: 114
-      Script: {instanceID: 11994}
+      Script: {instanceID: 11980}
     - Class: 114
-      Script: {instanceID: 12172}
+      Script: {instanceID: 11996}
     - Class: 114
-      Script: {instanceID: 12220}
+      Script: {instanceID: 12174}
     - Class: 114
-      Script: {instanceID: 12264}
+      Script: {instanceID: 12222}
     - Class: 114
-      Script: {instanceID: 12326}
+      Script: {instanceID: 12266}
     - Class: 114
-      Script: {instanceID: 12362}
+      Script: {instanceID: 12328}
     - Class: 114
-      Script: {instanceID: 12418}
+      Script: {instanceID: 12364}
     - Class: 114
-      Script: {instanceID: 12448}
+      Script: {instanceID: 12420}
     - Class: 114
-      Script: {instanceID: 12496}
+      Script: {instanceID: 12450}
     - Class: 114
-      Script: {instanceID: 12648}
+      Script: {instanceID: 12498}
     - Class: 114
-      Script: {instanceID: 12788}
+      Script: {instanceID: 12650}
     - Class: 114
-      Script: {instanceID: 12880}
+      Script: {instanceID: 12790}
     - Class: 114
-      Script: {instanceID: 12992}
+      Script: {instanceID: 12882}
     - Class: 114
-      Script: {instanceID: 13004}
+      Script: {instanceID: 12994}
+    - Class: 114
+      Script: {instanceID: 13006}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -258,6 +261,12 @@ ScriptsOnlyBuild:
     className: PhysicsRaycaster
   - hash:
       serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: HitAnimationManager
+  - hash:
+      serializedVersion: 2
       Hash: bd3cf68c8964d3c66d1c43f4f98508c9
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
@@ -366,7 +375,7 @@ ScriptsOnlyBuild:
     className: ScrollRect
   - hash:
       serializedVersion: 2
-      Hash: 6aa1f3800462b63aaf08e700824e158a
+      Hash: d8748e4c57c4d28effba48fbf76a5ff7
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: GameManager
@@ -414,7 +423,7 @@ ScriptsOnlyBuild:
     className: RawImage
   - hash:
       serializedVersion: 2
-      Hash: 841bd9289575c75c7e3e2113d9e2a8ca
+      Hash: 8067c4556bef6dcc5f3584b647c3b6f3
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: SetupPage1
@@ -474,7 +483,7 @@ ScriptsOnlyBuild:
     className: Physics2DRaycaster
   - hash:
       serializedVersion: 2
-      Hash: c379232abe2c0f6c2a3e3866f770f1fc
+      Hash: d7739879ce21e06170dcaeef204935fd
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: SetupPage2
@@ -492,7 +501,7 @@ ScriptsOnlyBuild:
     className: TimelineAsset
   - hash:
       serializedVersion: 2
-      Hash: b1ca68445379ef36502decad9592a107
+      Hash: 83e9de2f453e302caa37262392b5f782
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: GamePage
@@ -649,4 +658,4 @@ ScriptsOnlyBuild:
   platform: 13
   scenePathNames:
   - Assets/Scenes/Game.unity
-  playerPath: C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/BattleShotsv1.1.aab
+  playerPath: C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/BattleShotsTest6.apk

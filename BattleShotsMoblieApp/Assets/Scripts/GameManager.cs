@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private GameObject gamePage;
 
+    [SerializeField]
+    public Canvas[] canvases;
+
     private GameObject currentPage;
     private GameObject prevPage;
 
@@ -34,13 +38,19 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         camAnimator = Cam.GetComponent<Animator>();
+
+        Vector2 screenSize = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
+        for (int i = 0; i < canvases.Length; i++)
+        {
+            canvases[i].GetComponent<CanvasScaler>().referenceResolution = screenSize;
+        }
         BluetoothPlugin = BluetoothWrapper.pluginWithGameObjectName(this.transform.name);
         Settings = new GameSettings();
         startPage.SetActive(true);
         currentPage = startPage;
     }
 
-    public void OpenPage(string _pageName, bool _transition)
+    public void OpenPage(string _pageName, bool _transition = false)
     {
         prevPage = currentPage;
         //if(_transition)
@@ -114,6 +124,14 @@ public class GameManager : MonoBehaviour
     }
 
     #region Callbacks
+    public void OnResume(string msg)
+    {
+        //Vector2 screenSize = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
+        //for (int i = 0; i < canvases.Length; i++)
+        //{
+        //    canvases[i].GetComponent<CanvasScaler>().referenceResolution = screenSize;
+        //}
+    }
     public void NewDeviceFound(string device)
     {
         connectionPage.GetComponent<ConnectionPage>().NewDeviceFound(device);
@@ -137,7 +155,6 @@ public class GameManager : MonoBehaviour
     {
         Settings.Master = false;
         settings.ConnectedDeviceName = device;
-        BluetoothPlugin.WriteAddDevice(device);
         OpenPage("SetupPage1", true);
     }
 
@@ -251,6 +268,67 @@ public class GameManager : MonoBehaviour
     public void DataSentCallBack(string status)
     {
 
+    }
+
+    public bool StartReconnectionStatus;
+    public void StartReconnectionCallBack(string status)
+    {
+        if(status == "1")
+        {
+            StartReconnectionStatus = true;
+        }
+        else
+        {
+            StartReconnectionStatus = false;
+        }
+
+        if (setUpPage1.activeSelf)
+        {
+            SetupPage1 insSetupPage1 = setUpPage1.GetComponent<SetupPage1>();
+
+            insSetupPage1.reconnectPanel.SetActive(true);
+            insSetupPage1.reconnectScreen.SetActive(false);
+        }
+        else if (setUpPage2.activeSelf)
+        {
+            SetupPage2 insSetupPage2 = setUpPage2.GetComponent<SetupPage2>();
+            insSetupPage2.reconnectPanel.SetActive(true);
+            insSetupPage2.reconnectScreen.SetActive(false);
+        }
+        else if (gamePage.activeSelf)
+        {
+            GamePage insGamePage = gamePage.GetComponent<GamePage>();
+            insGamePage.reconnectPanel.SetActive(true);
+            insGamePage.reconnectScreen.SetActive(false);
+        }
+    }
+
+    public void ReconnectedCallBack(string status)
+    {
+        if (setUpPage1.activeSelf)
+        {
+            SetupPage1 insSetupPage1 = setUpPage1.GetComponent<SetupPage1>();
+            insSetupPage1.reconnectPanel.SetActive(false);
+            insSetupPage1.reconnectScreen.SetActive(false);
+        }
+        else if (setUpPage2.activeSelf)
+        {
+            SetupPage2 insSetupPage2 = setUpPage2.GetComponent<SetupPage2>();
+            insSetupPage2.reconnectPanel.SetActive(false);
+            insSetupPage2.reconnectScreen.SetActive(false);
+        }
+        else if (gamePage.activeSelf)
+        {
+            GamePage insGamePage = gamePage.GetComponent<GamePage>();
+            insGamePage.reconnectPanel.SetActive(false);
+            insGamePage.reconnectScreen.SetActive(false);
+        }
+    }
+
+    public void CancelReconnectedCallBack(string status)
+    {
+        settings.ResetSettings();
+        OpenPage("ConnectionPage", false);
     }
 
     #endregion

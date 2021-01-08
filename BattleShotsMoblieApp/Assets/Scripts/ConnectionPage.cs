@@ -62,6 +62,11 @@ public class ConnectionPage : MonoBehaviour
         GetKnownDevices();
         GetNewDevices();
         txtDeviceName.text = GameManager.BluetoothPlugin.GetDeviceName();
+        string IsReceiving = GameManager.BluetoothPlugin.GetIsReceiving();
+        if (IsReceiving == "0")
+        {
+            GameManager.BluetoothPlugin.ReceivePair();
+        }
     }
 
     private void OnDisable()
@@ -208,7 +213,7 @@ public class ConnectionPage : MonoBehaviour
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                gameManager.OpenPage("StartPage", false);
+                gameManager.OpenPage("MenuPage", false);
             }
 
             if(gettingKnownDevices)

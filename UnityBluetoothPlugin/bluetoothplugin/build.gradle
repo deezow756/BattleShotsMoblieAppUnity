@@ -35,6 +35,6 @@ dependencies {
 task copyPlugin(type: Copy) {
     dependsOn assemble
     from ('build/outputs/aar')
-    into ('C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Assets/Plugins/Android')
+    into ('C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Assets/Plugins/Android')
     include (project.name + '-release.aar')
 }

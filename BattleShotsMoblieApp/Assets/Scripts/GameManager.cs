@@ -11,16 +11,28 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private GameObject startPage;
     [SerializeField]
+    private GameObject menuPage;
+    [SerializeField]
     private GameObject connectionPage;
+    [SerializeField]
+    private GameObject sinSetUp1;
+    [SerializeField]
+    private GameObject sinSetUp2;
     [SerializeField]
     private GameObject setUpPage1;
     [SerializeField]
     private GameObject setUpPage2;
     [SerializeField]
+    private GameObject sinGamePage;
+    [SerializeField]
     private GameObject gamePage;
 
     [SerializeField]
     public Canvas[] canvases;
+
+    public enum GameMode { Single, Multi};
+
+    public static GameMode Mode;
 
     private GameObject currentPage;
     private GameObject prevPage;
@@ -66,14 +78,26 @@ public class GameManager : MonoBehaviour
             case "StartPage":
                 currentPage = startPage;
                 break;
+            case "MenuPage":
+                currentPage = menuPage;
+                break;
             case "ConnectionPage":
                 currentPage = connectionPage;
+                break;
+            case "SinSetUp1":
+                currentPage = sinSetUp1;
+                break;
+            case "SinSetUp2":
+                currentPage = sinSetUp2;
                 break;
             case "SetupPage1":
                 currentPage = setUpPage1;
                 break;
             case "SetupPage2":
                 currentPage = setUpPage2;
+                break;
+            case "SinGamePage":
+                currentPage = sinGamePage;
                 break;
             case "GamePage":
                 currentPage = gamePage;
@@ -160,7 +184,7 @@ public class GameManager : MonoBehaviour
 
     public void DisconnectedCallBack(string status)
     {
-        settings.ResetSettings();
+        settings = new GameSettings();
         OpenPage("ConnectionPage", false);
     }
 
@@ -170,7 +194,7 @@ public class GameManager : MonoBehaviour
         {
             SetupPage1 insSetupPage1 = setUpPage1.GetComponent<SetupPage1>();
             string[] split = msg.Split(',');
-            if(split.Length > 1)
+            if(split.Length == 2)
             {
                 if(split[0].Equals("name"))
                 {
@@ -186,6 +210,11 @@ public class GameManager : MonoBehaviour
                     Settings.NumOfShots = int.Parse(split[1]);
                     insSetupPage1.ReceiveNumOfShots(split[1]);
                 }
+            }
+            else if(split.Length == 3)
+            {
+                Settings.EnemyName = split[1];
+                insSetupPage1.otherPlayerReady = true;
             }
             else
             {
@@ -252,10 +281,6 @@ public class GameManager : MonoBehaviour
                 {
                     insGamePage.ReceiveReady();
                 }
-                else if (msg.Equals("tryagain"))
-                {
-                    insGamePage.ReceiveTryAgain();
-                }
                 else if (msg.Equals("exit"))
                 {
                     insGamePage.ReceiveExit();
@@ -268,68 +293,7 @@ public class GameManager : MonoBehaviour
     public void DataSentCallBack(string status)
     {
 
-    }
-
-    public bool StartReconnectionStatus;
-    public void StartReconnectionCallBack(string status)
-    {
-        if(status == "1")
-        {
-            StartReconnectionStatus = true;
-        }
-        else
-        {
-            StartReconnectionStatus = false;
-        }
-
-        if (setUpPage1.activeSelf)
-        {
-            SetupPage1 insSetupPage1 = setUpPage1.GetComponent<SetupPage1>();
-
-            insSetupPage1.reconnectPanel.SetActive(true);
-            insSetupPage1.reconnectScreen.SetActive(false);
-        }
-        else if (setUpPage2.activeSelf)
-        {
-            SetupPage2 insSetupPage2 = setUpPage2.GetComponent<SetupPage2>();
-            insSetupPage2.reconnectPanel.SetActive(true);
-            insSetupPage2.reconnectScreen.SetActive(false);
-        }
-        else if (gamePage.activeSelf)
-        {
-            GamePage insGamePage = gamePage.GetComponent<GamePage>();
-            insGamePage.reconnectPanel.SetActive(true);
-            insGamePage.reconnectScreen.SetActive(false);
-        }
-    }
-
-    public void ReconnectedCallBack(string status)
-    {
-        if (setUpPage1.activeSelf)
-        {
-            SetupPage1 insSetupPage1 = setUpPage1.GetComponent<SetupPage1>();
-            insSetupPage1.reconnectPanel.SetActive(false);
-            insSetupPage1.reconnectScreen.SetActive(false);
-        }
-        else if (setUpPage2.activeSelf)
-        {
-            SetupPage2 insSetupPage2 = setUpPage2.GetComponent<SetupPage2>();
-            insSetupPage2.reconnectPanel.SetActive(false);
-            insSetupPage2.reconnectScreen.SetActive(false);
-        }
-        else if (gamePage.activeSelf)
-        {
-            GamePage insGamePage = gamePage.GetComponent<GamePage>();
-            insGamePage.reconnectPanel.SetActive(false);
-            insGamePage.reconnectScreen.SetActive(false);
-        }
-    }
-
-    public void CancelReconnectedCallBack(string status)
-    {
-        settings.ResetSettings();
-        OpenPage("ConnectionPage", false);
-    }
+    }    
 
     #endregion
 }

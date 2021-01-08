@@ -73,9 +73,13 @@
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\GamePage.cs" />
     <Compile Include="Assets\Scripts\GameSettings.cs" />
+    <Compile Include="Assets\Scripts\MenuPage.cs" />
     <Compile Include="Assets\Scripts\RandomPatrol.cs" />
     <Compile Include="Assets\Scripts\SetupPage1.cs" />
     <Compile Include="Assets\Scripts\SetupPage2.cs" />
+    <Compile Include="Assets\Scripts\SingleGamePage.cs" />
+    <Compile Include="Assets\Scripts\SingleSetUp1Page.cs" />
+    <Compile Include="Assets\Scripts\SingleSetUp2Page.cs" />
     <Compile Include="Assets\Scripts\StartPage.cs" />
     <Compile Include="Assets\Scripts\UI Scripts\ButtonScript.cs" />
     <Compile Include="Assets\Scripts\UI Scripts\CreateGrid.cs" />
@@ -85,31 +89,31 @@
     <None Include="Assets\Imports\Fonts\Documentation\JazzCreateAltKeys_BubbleFont.txt" />
     <None Include="Assets\Imports\Fonts\Documentation\JazzCreateBubble_VersionHistory_1.1.txt" />
     <Reference Include="Unity.Timeline.Editor">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-      <HintPath>C:/Users/dorre/OneDrive/Documents/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+      <HintPath>C:/GitHub/BattleShotsMoblieAppUnity/BattleShotsMoblieApp/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>C:/Program Files/2020.1.0a13/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>

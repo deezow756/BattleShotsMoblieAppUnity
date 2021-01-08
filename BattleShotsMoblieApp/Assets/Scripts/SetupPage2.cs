@@ -30,20 +30,15 @@ public class SetupPage2 : MonoBehaviour
     private Button btnLetsPlay;
 
     [SerializeField]
-    private Text errorText;
+    private GameObject errorText;
 
     [SerializeField]
     private GameObject LeaveGamePanel;
 
     [SerializeField]
-    public GameObject reconnectPanel;
-    [SerializeField]
-    public GameObject reconnectScreen;
-    [SerializeField]
-    private GameObject reconnectBtnCancel;
-
-    [SerializeField]
     private GameObject helpPanel;
+
+
 
     private void Update()
     {
@@ -80,8 +75,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error With Grid Creation";
+            DisplayError("Error With Grid Creation");
         }
 
         try
@@ -103,8 +97,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Onenable";
+            DisplayError("Error Onenable");
         }
     }
 
@@ -181,8 +174,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Grid Onclick";
+            DisplayError("Error Grid Onclick");
         }
     }
 
@@ -206,8 +198,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Setting Enemy Status";
+            DisplayError("Error Setting Enemy Status");
         }
     }
 
@@ -228,8 +219,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Double Check Received";
+            DisplayError("Error Double Check Received");
         }
     }
 
@@ -242,8 +232,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error EnemyIsReady";
+            DisplayError("Error EnemyIsReady");
         }
     }
 
@@ -259,8 +248,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Lets Play Onclick";
+            DisplayError("Error Lets Play Onclick");
         }
     }
 
@@ -272,8 +260,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error With Next Page";
+            DisplayError("Error With Next Page");
         }
     }
 
@@ -292,8 +279,7 @@ public class SetupPage2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            errorText.gameObject.SetActive(true);
-            errorText.text = "Error Changing Interaction With Grid";
+            DisplayError("Error Changing Interaction With Grid");
         }
     }
 
@@ -307,35 +293,17 @@ public class SetupPage2 : MonoBehaviour
         helpPanel.SetActive(false);
     }
 
-    public void BtnRetry()
+    private void DisplayError(string _message)
     {
-        if (gameManager.StartReconnectionStatus)
-        {
-            GameManager.BluetoothPlugin.ReconnectSend();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(false);
-            reconnectPanel.SetActive(false);
-        }
-        else
-        {
-            GameManager.BluetoothPlugin.ReconnectReceive();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(true);
-            reconnectPanel.SetActive(false);
-        }
+        errorText.SetActive(true);
+        errorText.GetComponentInChildren<Text>().text = _message;
+        Invoke("DisableError", 4);
     }
 
-    public void BtnExit()
+    void DisableError()
     {
-        gameManager.CancelReconnectedCallBack("1");
-    }
-
-    public void BtnCancel()
-    {
-        GameManager.BluetoothPlugin.ReconnectCancel();
-        reconnectScreen.SetActive(false);
-        reconnectBtnCancel.SetActive(false);
-        reconnectPanel.SetActive(true);
+        errorText.GetComponentInChildren<Text>().text = "";
+        errorText.SetActive(false);
     }
 
 }

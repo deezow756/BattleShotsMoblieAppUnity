@@ -43,13 +43,6 @@ public class GamePage : MonoBehaviour
     private GameObject LeaveGamePanel;
 
     [SerializeField]
-    public GameObject reconnectPanel;
-    [SerializeField]
-    public GameObject reconnectScreen;
-    [SerializeField]
-    private GameObject reconnectBtnCancel;
-
-    [SerializeField]
     private GameObject helpPanel;
 
     [SerializeField]
@@ -69,7 +62,7 @@ public class GamePage : MonoBehaviour
     public void LeaveYes()
     {
         GameManager.BluetoothPlugin.Disconnect();
-        gameManager.Settings.ResetSettings();
+        gameManager.Settings = new GameSettings();
         GameManager.BluetoothPlugin.Reset();
         gameManager.OpenPage("ConnectionPage", false);
     }
@@ -183,7 +176,7 @@ public class GamePage : MonoBehaviour
                 GameManager.BluetoothPlugin.SendData("miss");
                 string[] split = coordenates.Split(',');
                 yourGridInstance[int.Parse(split[0]), int.Parse(split[1])].GetComponent<GridButtonScript>().SetCross();
-                txtShotsleft.text = (int.Parse(txtShotsleft.text) - 1).ToString();
+                //txtShotsleft.text = (int.Parse(txtShotsleft.text) - 1).ToString();
             }
         }
         catch (Exception ex)
@@ -346,7 +339,7 @@ public class GamePage : MonoBehaviour
 
             GameManager.BluetoothPlugin.Reset();
 
-            gameManager.Settings.ResetSettings();
+            gameManager.Settings = new GameSettings();
 
             if (lostPanel.activeSelf)
             {
@@ -399,7 +392,7 @@ public class GamePage : MonoBehaviour
         {
             GameManager.BluetoothPlugin.Reset();
 
-            gameManager.Settings.ResetSettings();
+            gameManager.Settings = new GameSettings();
 
             if (lostPanel.activeSelf)
             {
@@ -427,36 +420,5 @@ public class GamePage : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
-    }
-
-    public void BtnRetry()
-    {
-        if (gameManager.StartReconnectionStatus)
-        {
-            GameManager.BluetoothPlugin.ReconnectSend();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(false);
-            reconnectPanel.SetActive(false);
-        }
-        else
-        {
-            GameManager.BluetoothPlugin.ReconnectReceive();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(true);
-            reconnectPanel.SetActive(false);
-        }
-    }
-
-    public void BtnExit()
-    {
-        gameManager.CancelReconnectedCallBack("1");
-    }
-
-    public void BtnCancel()
-    {
-        GameManager.BluetoothPlugin.ReconnectCancel();
-        reconnectScreen.SetActive(false);
-        reconnectBtnCancel.SetActive(false);
-        reconnectPanel.SetActive(true);
     }
 }

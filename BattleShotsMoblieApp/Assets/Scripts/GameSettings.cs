@@ -19,6 +19,8 @@ public class GameSettings : MonoBehaviour
         {
             if (value != 0)
             {
+                Player1Grid = new int[value, value];
+                Player2Grid = new int[value, value];
                 YourGrid = new int[value, value];
                 EnemyGrid = new int[value, value];
                 sizeOfGrid = value;
@@ -34,13 +36,29 @@ public class GameSettings : MonoBehaviour
 
     public int[,] YourGrid;
 
+    public int[,] Player1Grid;
+
+    public int[,] Player2Grid;
+
     public List<string> AllReadySelected = new List<string>();
 
+    public List<string> P1AllReadySelected = new List<string>();
+
+    public List<string> P2AllReadySelected = new List<string>();
+
     public List<string> YourShotCoodinates = new List<string>();
+
+    public List<string> Player1ShotCoodinates = new List<string>();
+
+    public List<string> Player2ShotCoodinates = new List<string>();
+
     public bool Ready { get; set; }
     public bool EnemyReady { get; set; }
 
     public bool YourTurn { get; set; }
+
+    public string Player1 { get; set; }
+    public string Player2 { get; set; }
 
     public GameSettings()
     {

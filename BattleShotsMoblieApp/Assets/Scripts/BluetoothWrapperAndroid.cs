@@ -89,21 +89,6 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
         return instance.Call<string>("GetIsReceiving");
     }
 
-    public override void ReconnectReceive()
-    {
-        instance.Call("ReconnectReceive");
-    }
-
-    public override void ReconnectSend()
-    {
-        instance.Call("ReconnectSend");
-    }
-
-    public override void ReconnectCancel()
-    {
-        instance.Call("ReconnectCancel");
-    }
-
     public override void ReceiveData()
     {
         instance.Call("ReceiveData");

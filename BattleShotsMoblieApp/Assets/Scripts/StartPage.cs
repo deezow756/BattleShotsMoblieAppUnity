@@ -106,7 +106,7 @@ public class StartPage : MonoBehaviour
                 {
                     GameManager.BluetoothPlugin.ReceivePair();
                 }
-                gameManager.OpenPage("ConnectionPage", true);
+                gameManager.OpenPage("MenuPage", true);
                 Invoke("ButtonInteraction", 3);
             }
             else

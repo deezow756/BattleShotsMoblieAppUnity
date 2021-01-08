@@ -42,14 +42,9 @@ public class SetupPage1 : MonoBehaviour
     private GameObject LeaveGamePanel;
 
     [SerializeField]
-    public GameObject reconnectPanel;
-    [SerializeField]
-    public GameObject reconnectScreen;
-    [SerializeField]
-    private GameObject reconnectBtnCancel;
-
-    [SerializeField]
     private GameObject helpPanel;
+
+    public bool otherPlayerReady = false;
 
     #endregion
     private void Start()
@@ -88,8 +83,7 @@ public class SetupPage1 : MonoBehaviour
 
     public void LeaveYes()
     {
-        gameManager.Settings.ResetSettings();
-        GameManager.BluetoothPlugin.Reset();
+        gameManager.Settings = new GameSettings();
         GameManager.BluetoothPlugin.Disconnect();
         gameManager.OpenPage("ConnectionPage", false);
     }
@@ -105,7 +99,9 @@ public class SetupPage1 : MonoBehaviour
         EditorSection.SetActive(false);
         ReadOnlySection.SetActive(false);
         helpPanel.SetActive(false);
-        reconnectPanel.SetActive(false);
+        nameInput.text = "";
+        numOfShotsInput.text = "";
+        otherPlayerReady = false;
     }
 
     public void Continue()
@@ -130,13 +126,20 @@ public class SetupPage1 : MonoBehaviour
                 return;
             }
 
-            GameManager.BluetoothPlugin.SendData("continue");
-            Invoke("NextPage", 0.5f);
+            if (otherPlayerReady)
+            {
+                GameManager.BluetoothPlugin.SendData("continue");
+                Invoke("NextPage", 0.2f);
+            }
+            else
+            {
+                DisplayError("Other Player Not Ready Yet");
+            }
         }
         catch (Exception ex)
         {
-            errorText.SetActive(true);
-            errorText.GetComponent<Text>().text = "Error Continue";
+            //errorText.SetActive(true);
+            //errorText.GetComponent<Text>().text = "Error Continue";
         }
     }
 
@@ -156,10 +159,25 @@ public class SetupPage1 : MonoBehaviour
     public void NameChange()
     {
         try
-        {
+        {            
             gameManager.Settings.YourName = nameInput.text;
-
-            GameManager.BluetoothPlugin.SendData("name," + nameInput.text);
+            
+            if (!gameManager.Settings.Master)
+            {
+                if (!otherPlayerReady)
+                {
+                    otherPlayerReady = true;
+                    GameManager.BluetoothPlugin.SendData("name," + nameInput.text);
+                }
+                else
+                {
+                    GameManager.BluetoothPlugin.SendData("name," + nameInput.text + ",ready");
+                }
+            }
+            else
+            {
+                GameManager.BluetoothPlugin.SendData("name," + nameInput.text);
+            }
         }
         catch (Exception ex)
         {
@@ -222,7 +240,7 @@ public class SetupPage1 : MonoBehaviour
             }
             if (temp < 1)
             {
-                DisplayError("Number Of Shots Must Be More Than 0");
+                //DisplayError("Number Of Shots Must Be More Than 0");
                 numOfShotsInput.text = "";
                 return;
             }
@@ -244,9 +262,13 @@ public class SetupPage1 : MonoBehaviour
     {
         errorText.SetActive(true);
         errorText.GetComponentInChildren<Text>().text = _message;
-        Animator animator = errorText.GetComponent<Animator>();
-        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        Invoke("DisableError", stateInfo.length);
+        Invoke("DisableError", 4);
+    }
+
+    void DisableError()
+    {
+        errorText.GetComponentInChildren<Text>().text = "";
+        errorText.SetActive(false);
     }
 
     public void BtnHelpOnClick()
@@ -257,36 +279,5 @@ public class SetupPage1 : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
-    }
-
-    public void BtnRetry()
-    {
-        if(gameManager.StartReconnectionStatus)
-        {
-            GameManager.BluetoothPlugin.ReconnectSend();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(false);
-            reconnectPanel.SetActive(false);
-        }
-        else
-        {
-            GameManager.BluetoothPlugin.ReconnectReceive();
-            reconnectScreen.SetActive(true);
-            reconnectBtnCancel.SetActive(true);
-            reconnectPanel.SetActive(false);
-        }
-    }
-
-    public void BtnExit()
-    {
-        gameManager.CancelReconnectedCallBack("1");
-    }
-
-    public void BtnCancel()
-    {
-        GameManager.BluetoothPlugin.ReconnectCancel();
-        reconnectScreen.SetActive(false);
-        reconnectBtnCancel.SetActive(false);
-        reconnectPanel.SetActive(true);        
     }
 }

@@ -1526,6 +1526,11 @@ MonoBehaviour:
   winPanel: {fileID: 446449631}
   lostPanel: {fileID: 132383597}
   LeaveGamePanel: {fileID: 3140832406978863132}
+  reconnectPanel: {fileID: 0}
+  reconnectScreen: {fileID: 0}
+  reconnectBtnCancel: {fileID: 0}
+  helpPanel: {fileID: 0}
+  hitAnimation: {fileID: 0}
 --- !u!1001 &5609176
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1855,6 +1860,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: HelpPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 6167698020927910906, guid: 3352a6636dd80214b80aac0e419291ec,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3352a6636dd80214b80aac0e419291ec, type: 3}

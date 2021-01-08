@@ -8,6 +8,8 @@ public class DropdownCustom : MonoBehaviour
     [SerializeField]
     SetupPage1 setupPage1;
     [SerializeField]
+    SingleSetUp1Page sinSetupPage1;
+    [SerializeField]
     Text dropdownText;
     [SerializeField]
     private RectTransform container;
@@ -42,7 +44,14 @@ public class DropdownCustom : MonoBehaviour
     {
         dropdownText.text = value.ToString();
         isOpen = false;
-        setupPage1.DropDownOptionChange(value);
+        if (setupPage1 != null)
+        {
+            setupPage1.DropDownOptionChange(value);
+        }
+        else if(sinSetupPage1 != null)
+        {
+            sinSetupPage1.DropDownOptionChange(value);
+        }
     }
     
 }

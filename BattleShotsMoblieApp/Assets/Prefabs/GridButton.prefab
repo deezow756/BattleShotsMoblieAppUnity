@@ -132,7 +132,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   setupPage2: {fileID: 0}
+  sinSetUpPage2: {fileID: 0}
+  sinGamePage: {fileID: 0}
   gamePage: {fileID: 0}
+  enemy: 0
   image: {fileID: 67228725163132929}
   cross: {fileID: 21300000, guid: 1edfe12e107751e459a7cabf50cb3118, type: 3}
   shot: {fileID: 21300000, guid: 1c0b6af82fa0196409f5a7d4ab219902, type: 3}

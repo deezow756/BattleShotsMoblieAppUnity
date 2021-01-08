@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class GridButtonScript : MonoBehaviour
 {
     public SetupPage2 setupPage2;
+    public SingleSetUp2Page sinSetUpPage2;
+    public SingleGamePage sinGamePage;
     public GamePage gamePage;
     public bool enemy;
     [SerializeField]
@@ -49,16 +51,27 @@ public class GridButtonScript : MonoBehaviour
 
     public void OnClick()
     {
-        if(setupPage2 != null)
+        if (setupPage2 != null)
         {
             setupPage2.GridButtonOnClick(this.gameObject);
         }
-        else if(gamePage != null)
+        else if (gamePage != null)
         {
-            if(enemy)
+            if (enemy)
             {
                 gamePage.EnemyGridButtonOnClick(this.gameObject);
             }
+        }
+        else if (sinGamePage != null)
+        {
+            if (enemy)
+            {
+                sinGamePage.EnemyGridButtonOnClick(this.gameObject);
+            }
+        }
+        else if (sinSetUpPage2 != null)
+        {
+            sinSetUpPage2.GridButtonOnClick(this.gameObject);
         }
     }
 }

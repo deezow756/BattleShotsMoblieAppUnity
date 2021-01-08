@@ -32,6 +32,11 @@ public class CreateGrid : MonoBehaviour
         }
     }
 
+    public CreateGrid()
+    {
+        
+    }
+
     public CreateGrid(GamePage gamePage, bool enemy, GameObject grid, int[,] gridStatus , int sizeOfGrid, GameObject buttonPrefab)
     {
         Grid = new GameObject[sizeOfGrid, sizeOfGrid];
@@ -64,7 +69,98 @@ public class CreateGrid : MonoBehaviour
             x = 0;
         }
     }
-    
+    public CreateGrid(SingleGamePage gamePage, bool enemy, GameObject grid, int[,] gridStatus, int sizeOfGrid, GameObject buttonPrefab)
+    {
+        Grid = new GameObject[sizeOfGrid, sizeOfGrid];
+        float offSet = grid.GetComponent<RectTransform>().rect.width / sizeOfGrid;
+        float y = 0;
+        float x = 0;
+        for (int i = 0; i < sizeOfGrid; i++)
+        {
+            for (int j = 0; j < sizeOfGrid; j++)
+            {
+                GameObject btn = Instantiate(buttonPrefab, grid.transform);
+                btn.name = i.ToString() + "," + j.ToString();
+                RectTransform rectTransform = btn.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = new Vector2(x, y * -1);
+                rectTransform.sizeDelta = new Vector2(offSet, offSet);
+                GridButtonScript btnScript = btn.GetComponent<GridButtonScript>();
+                btnScript.sinGamePage = gamePage;
+                btnScript.enemy = enemy;
+                if (!enemy)
+                {
+                    if (gridStatus[i, j] == SHOT_STATUS)
+                    {
+                        btnScript.SetShot();
+                    }
+                }
+                Grid[i, j] = btn;
+                x += offSet;
+            }
+            y += offSet;
+            x = 0;
+        }
+    }
+
+    public GameObject[,] GetGrid(SingleSetUp2Page setupPage2, GameObject grid, int sizeOfGrid, GameObject buttonPrefab)
+    {
+        Grid = new GameObject[sizeOfGrid, sizeOfGrid];
+        float offSet = grid.GetComponent<RectTransform>().rect.width / sizeOfGrid;
+        float y = 0;
+        float x = 0;
+        for (int i = 0; i < sizeOfGrid; i++)
+        {
+            for (int j = 0; j < sizeOfGrid; j++)
+            {
+                GameObject btn = Instantiate(buttonPrefab, grid.transform);
+                btn.name = i.ToString() + "," + j.ToString();
+                RectTransform rectTransform = btn.GetComponent<RectTransform>();
+                rectTransform.sizeDelta = new Vector2(offSet, offSet);
+                rectTransform.anchoredPosition = new Vector2(x, y * -1);
+                btn.GetComponent<GridButtonScript>().sinSetUpPage2 = setupPage2;
+                Grid[i, j] = btn;
+                x += offSet;
+            }
+            y += offSet;
+            x = 0;
+        }
+        return Grid;
+    }
+
+    public GameObject[,] GetGrid(SingleGamePage gamePage, bool enemy, GameObject grid, int[,] gridStatus, int sizeOfGrid, GameObject buttonPrefab)
+    {
+        Grid = new GameObject[sizeOfGrid, sizeOfGrid];
+        float offSet = grid.GetComponent<RectTransform>().rect.width / sizeOfGrid;
+        float y = 0;
+        float x = 0;
+        for (int i = 0; i < sizeOfGrid; i++)
+        {
+            for (int j = 0; j < sizeOfGrid; j++)
+            {
+                GameObject btn = Instantiate(buttonPrefab, grid.transform);
+                btn.name = i.ToString() + "," + j.ToString();
+                RectTransform rectTransform = btn.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = new Vector2(x, y * -1);
+                rectTransform.sizeDelta = new Vector2(offSet, offSet);
+                GridButtonScript btnScript = btn.GetComponent<GridButtonScript>();
+                btnScript.sinGamePage = gamePage;
+                btnScript.enemy = enemy;
+                if (!enemy)
+                {
+                    if (gridStatus[i, j] == SHOT_STATUS)
+                    {
+                        btnScript.SetShot();
+                    }
+                }
+                Grid[i, j] = btn;
+                x += offSet;
+            }
+            y += offSet;
+            x = 0;
+        }
+        return Grid;
+    }
+
     public GameObject[,] GetGridInstance()
     {
         return Grid;

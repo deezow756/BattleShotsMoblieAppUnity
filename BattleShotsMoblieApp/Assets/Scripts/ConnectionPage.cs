@@ -51,6 +51,7 @@ public class ConnectionPage : MonoBehaviour
 
     private void OnEnable()
     {
+        GameManager.BluetoothPlugin.RestrictReceive(false);
         DestoryKnownDevices();
         DestoryNewDevices();
         gettingKnownDevices = false;
@@ -253,5 +254,10 @@ public class ConnectionPage : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
+    }
+
+    public void BtnBackOnClick()
+    {
+        gameManager.OpenPage("MenuPage");
     }
 }

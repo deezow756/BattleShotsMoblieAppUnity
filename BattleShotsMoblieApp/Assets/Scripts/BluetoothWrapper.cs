@@ -74,6 +74,8 @@ public class BluetoothWrapper : MonoBehaviour
 
     virtual public void Reset() { }
 
+    virtual public void RestrictReceive(bool val) { }
+
     // ...
 
     #endregion

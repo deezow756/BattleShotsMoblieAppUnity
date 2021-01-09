@@ -109,5 +109,15 @@ public class BluetoothWrapperAndroid : BluetoothWrapper
         instance.Call("Reset");
     }
 
+    public override void RestrictReceive(bool val)
+    {
+        string temp = "0";
+        if(val)
+        {
+            temp = "1";
+        }
+        instance.Call("RestrictReceive", temp);
+    }
+
     #endregion
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuPage : MonoBehaviour
 {
@@ -8,10 +9,18 @@ public class MenuPage : MonoBehaviour
     GameManager gameManager;
 
     [SerializeField]
+    private Button sinPhoneBtn;
+    [SerializeField]
+    private Button mulPhoneBtn;
+
+    [SerializeField]
     private GameObject Canvas;
 
     [SerializeField]
     private GameObject helpPanel;
+
+    [SerializeField]
+    private GameObject errorText;
 
     private void Start()
     {
@@ -20,13 +29,16 @@ public class MenuPage : MonoBehaviour
 
     private void OnEnable()
     {
-        if(GameManager.BluetoothPlugin.GetIsReceiving() == "0")
+        if (GameManager.BluetoothPlugin.BtCheck() != "0")
         {
-            GameManager.BluetoothPlugin.ReceivePair();
+            GameManager.BluetoothPlugin.RestrictReceive(false);
+            if (GameManager.BluetoothPlugin.GetIsReceiving() == "0")
+            {
+                GameManager.BluetoothPlugin.ReceivePair();
+            }
         }
 
-        helpPanel.SetActive(false);
-        
+        helpPanel.SetActive(false);        
     }
 
     public void BtnSingleOnClick()
@@ -35,7 +47,14 @@ public class MenuPage : MonoBehaviour
     }
     public void BtnMultiOnClick()
     {
-        gameManager.OpenPage("ConnectionPage");        
+        if (GameManager.BluetoothPlugin.BtCheck() == "0")
+        {
+            DisplayError("Sorry your device does not support bluetooth functionality");
+        }
+        else
+        {
+            gameManager.OpenPage("ConnectionPage");
+        }
     }
 
     private void Update()
@@ -48,6 +67,20 @@ public class MenuPage : MonoBehaviour
             }
         }
     }
+
+    private void DisplayError(string _message)
+    {
+        errorText.SetActive(true);
+        errorText.GetComponentInChildren<Text>().text = _message;
+        Invoke("DisableError", 4);
+    }
+
+    void DisableError()
+    {
+        errorText.GetComponentInChildren<Text>().text = "";
+        errorText.SetActive(false);
+    }
+
     public void BtnHelpOnClick()
     {
         helpPanel.SetActive(true);
@@ -56,5 +89,10 @@ public class MenuPage : MonoBehaviour
     public void BtnHelpOkOnClick()
     {
         helpPanel.SetActive(false);
+    }
+
+    public void BtnBackOnClick()
+    {
+        gameManager.OpenPage("StartPage");
     }
 }

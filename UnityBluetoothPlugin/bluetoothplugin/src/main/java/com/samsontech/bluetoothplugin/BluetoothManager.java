@@ -281,9 +281,7 @@ public class BluetoothManager extends Fragment {
                 getActivity().unregisterReceiver(receiver);
                 btAdapter.cancelDiscovery();
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             ShowToast("Error Cancel Discovery");
         }
     }
@@ -322,6 +320,7 @@ public class BluetoothManager extends Fragment {
     public BluetoothServerSocket serverSocket;
 
     public boolean isReceiving = false;
+    public boolean receiveStricted = false;
 
     public String GetIsReceiving()
     {
@@ -358,7 +357,7 @@ public class BluetoothManager extends Fragment {
                         Socket = null;
                         isReceiving = true;
 
-                        while (Socket == null && isReceiving) {
+                        while (Socket == null && isReceiving && !receiveStricted) {
                             try {
                                 Socket = serverSocket.accept();
                             } catch (IOException e) {
@@ -507,38 +506,6 @@ public class BluetoothManager extends Fragment {
         SendUnityMessage("ConnectedToDeviceCallBack", status);
     }
 
-    /*
-    @Override
-    public void onResume() {
-        super.onResume();
-        SendUnityMessage("OnResume", "");
-        if(Socket != null)
-        {
-            ShowToast("Socket Not Null");
-
-            if(!Socket.isConnected())
-            {
-                StartReconnectionCallBack("1");
-                ShowToast("Starting Reconnection");
-            }
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        try {
-            if(Socket != null) {
-                if (Socket.isConnected()) {
-                    Socket.close();
-                    ShowToast("Bluetooth Connection Closed");
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-*/
     BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -576,6 +543,18 @@ public class BluetoothManager extends Fragment {
     public void DisconnectCallBack()
     {
         SendUnityMessage("DisconnectedCallBack", "1");
+    }
+
+    public void RestrictReceive(String val)
+    {
+        if(val == "0")
+        {
+            receiveStricted = false;
+        }
+        else
+        {
+            receiveStricted = true;
+        }
     }
 
     //endregion

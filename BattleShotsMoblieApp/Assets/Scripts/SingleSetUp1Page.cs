@@ -48,6 +48,7 @@ public class SingleSetUp1Page : MonoBehaviour
     }
     private void OnEnable()
     {
+        GameManager.BluetoothPlugin.RestrictReceive(true);
         LeaveGamePanel.SetActive(false);
         helpPanel.SetActive(false);
         p1NameInput.text = "";
